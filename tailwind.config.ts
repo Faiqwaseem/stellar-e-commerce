@@ -72,8 +72,9 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Outfit", "Inter", "system-ui", "sans-serif"],
+        sans: ["Space Grotesk", "system-ui", "sans-serif"],
+        display: ["Space Grotesk", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "Fira Code", "monospace"],
       },
       keyframes: {
         "accordion-down": {
@@ -114,6 +115,17 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        "glitch": {
+          "0%, 100%": { transform: "translate(0)" },
+          "20%": { transform: "translate(-2px, 2px)" },
+          "40%": { transform: "translate(-2px, -2px)" },
+          "60%": { transform: "translate(2px, 2px)" },
+          "80%": { transform: "translate(2px, -2px)" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { boxShadow: "0 0 8px hsl(170 100% 50% / 0.2)" },
+          "50%": { boxShadow: "0 0 24px hsl(170 100% 50% / 0.4)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -125,10 +137,13 @@ export default {
         "scale-in": "scale-in 0.3s ease-out",
         "bounce-in": "bounce-in 0.6s ease-out",
         float: "float 3s ease-in-out infinite",
+        glitch: "glitch 0.3s ease-in-out",
+        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
       },
       boxShadow: {
-        glow: "0 0 20px rgba(249, 115, 22, 0.3)",
-        "glow-lg": "0 0 40px rgba(249, 115, 22, 0.4)",
+        glow: "0 0 20px hsl(170 100% 50% / 0.2)",
+        "glow-lg": "0 0 40px hsl(170 100% 50% / 0.3)",
+        "glow-accent": "0 0 20px hsl(320 100% 60% / 0.2)",
       },
     },
   },
