@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Github, Twitter, Instagram, Youtube, Mail, Phone, MapPin, Terminal } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin, ShoppingCart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -25,7 +25,7 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { icon: Github, href: '#', label: 'GitHub' },
+  { icon: Facebook, href: '#', label: 'Facebook' },
   { icon: Twitter, href: '#', label: 'Twitter' },
   { icon: Instagram, href: '#', label: 'Instagram' },
   { icon: Youtube, href: '#', label: 'YouTube' },
@@ -33,116 +33,152 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-card border-t border-border">
-      {/* Newsletter */}
-      <div className="border-b border-border">
+    <footer className="bg-secondary text-secondary-foreground">
+      {/* Newsletter Section */}
+      <div className="gradient-primary">
         <div className="container py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
-              <h3 className="font-display text-lg font-bold text-foreground">
-                Subscribe to updates
+              <h3 className="text-xl font-bold text-primary-foreground">
+                Subscribe to our Newsletter
               </h3>
-              <p className="font-mono text-xs text-muted-foreground">
-                // get deals piped to your inbox
+              <p className="text-primary-foreground/80">
+                Get the latest deals and offers directly to your inbox
               </p>
             </div>
             <div className="flex w-full md:w-auto gap-2">
               <Input
                 type="email"
-                placeholder="user@email.dev"
-                className="w-full md:w-72 font-mono text-sm bg-secondary border-border rounded-sm"
+                placeholder="Enter your email"
+                className="w-full md:w-80 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
               />
-              <Button className="gradient-primary border-0 font-mono text-xs tracking-wider rounded-sm shrink-0">
-                subscribe
+              <Button variant="secondary" className="shrink-0">
+                Subscribe
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Links */}
-      <div className="container py-10">
+      {/* Main Footer */}
+      <div className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+          {/* Brand */}
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="border border-primary/50 rounded-sm p-1.5 bg-primary/10">
-                <Terminal className="h-5 w-5 text-primary" />
+              <div className="gradient-primary rounded-lg p-2">
+                <ShoppingCart className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="font-mono text-lg font-bold">
-                my<span className="text-primary">store</span>
+              <span className="font-display text-2xl font-bold">
+                My<span className="text-primary">Store</span>
               </span>
             </Link>
-            <p className="text-sm text-muted-foreground mb-4 max-w-sm">
-              Your one-stop technical marketplace. Quality products, transparent pricing, zero bloat.
+            <p className="text-secondary-foreground/70 mb-4 max-w-sm">
+              Your one-stop shop for all your needs. Quality products, amazing prices,
+              and exceptional customer service.
             </p>
-            <div className="space-y-1.5 font-mono text-xs text-muted-foreground">
+            <div className="space-y-2 text-sm text-secondary-foreground/70">
               <div className="flex items-center gap-2">
-                <MapPin className="h-3 w-3 text-primary" />
-                <span>123 Shopping St, Lahore, PK</span>
+                <MapPin className="h-4 w-4" />
+                <span>123 Shopping Street, Lahore, Pakistan</span>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="h-3 w-3 text-primary" />
+                <Phone className="h-4 w-4" />
                 <span>+92 300 1234567</span>
               </div>
               <div className="flex items-center gap-2">
-                <Mail className="h-3 w-3 text-primary" />
+                <Mail className="h-4 w-4" />
                 <span>support@mystore.pk</span>
               </div>
             </div>
           </div>
 
-          {Object.entries(footerLinks).map(([key, links]) => (
-            <div key={key}>
-              <h4 className="font-mono text-xs font-semibold tracking-widest uppercase text-foreground mb-4">
-                ./{key}
-              </h4>
-              <ul className="space-y-2">
-                {links.map((link) => (
-                  <li key={link.name}>
-                    <Link
-                      to={link.href}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Shop Links */}
+          <div>
+            <h4 className="font-semibold mb-4">Shop</h4>
+            <ul className="space-y-2">
+              {footerLinks.shop.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    to={link.href}
+                    className="text-secondary-foreground/70 hover:text-primary transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Support Links */}
+          <div>
+            <h4 className="font-semibold mb-4">Support</h4>
+            <ul className="space-y-2">
+              {footerLinks.support.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    to={link.href}
+                    className="text-secondary-foreground/70 hover:text-primary transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company Links */}
+          <div>
+            <h4 className="font-semibold mb-4">Company</h4>
+            <ul className="space-y-2">
+              {footerLinks.company.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    to={link.href}
+                    className="text-secondary-foreground/70 hover:text-primary transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
 
-      {/* Bottom */}
-      <div className="border-t border-border">
-        <div className="container py-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
-            <p className="font-mono text-[10px] text-muted-foreground">
-              © {new Date().getFullYear()} mystore.pk — all rights reserved — v2.6.0
+      {/* Bottom Bar */}
+      <div className="border-t border-secondary-foreground/10">
+        <div className="container py-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-secondary-foreground/60">
+              © {new Date().getFullYear()} MyStore. All rights reserved.
             </p>
-
-            <div className="flex items-center gap-3">
+            
+            {/* Social Links */}
+            <div className="flex items-center gap-4">
               {socialLinks.map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary transition-colors"
+                  className="text-secondary-foreground/60 hover:text-primary transition-colors"
                   aria-label={social.label}
                 >
-                  <social.icon className="h-4 w-4" />
+                  <social.icon className="h-5 w-5" />
                 </a>
               ))}
             </div>
 
-            <div className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
-              <span>accepts:</span>
-              {['VISA', 'MC', 'JazzCash', 'EP'].map((m) => (
-                <span key={m} className="border border-border px-1.5 py-0.5 rounded-sm bg-secondary">
-                  {m}
-                </span>
-              ))}
+            {/* Payment Methods */}
+            <div className="flex items-center gap-2 text-xs text-secondary-foreground/60">
+              <span>We accept:</span>
+              <div className="flex gap-1">
+                <span className="bg-secondary-foreground/10 px-2 py-1 rounded">Visa</span>
+                <span className="bg-secondary-foreground/10 px-2 py-1 rounded">Mastercard</span>
+                <span className="bg-secondary-foreground/10 px-2 py-1 rounded">JazzCash</span>
+                <span className="bg-secondary-foreground/10 px-2 py-1 rounded">Easypaisa</span>
+              </div>
             </div>
           </div>
         </div>

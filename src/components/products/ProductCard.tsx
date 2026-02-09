@@ -18,9 +18,9 @@ interface ProductCardProps {
 export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const { addItem } = useCartStore();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
-
-  const discount = product.original_price
-    ? calculateDiscount(product.original_price, product.price)
+  
+  const discount = product.original_price 
+    ? calculateDiscount(product.original_price, product.price) 
     : 0;
 
   const isWishlisted = isInWishlist(product.id);
@@ -30,7 +30,9 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     e.stopPropagation();
     if (product.stock > 0) {
       addItem(product);
-      toast.success('Added to cart', { description: product.name });
+      toast.success('Added to cart!', {
+        description: product.name,
+      });
     }
   };
 
@@ -42,130 +44,131 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       toast.success('Removed from wishlist');
     } else {
       addToWishlist(product);
-      toast.success('Added to wishlist');
+      toast.success('Added to wishlist!');
     }
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.04 }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
     >
       <Link to={`/product/${product.id}`}>
-        <Card className="group overflow-hidden product-card-hover h-full rounded-sm bg-card">
-          {/* Image */}
+        <Card className="group overflow-hidden product-card-hover h-full">
+          {/* Image Container */}
           <div className="relative aspect-square overflow-hidden bg-muted">
             <img
               src={product.images[0] || '/placeholder.svg'}
               alt={product.name}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 brightness-90 group-hover:brightness-100"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
-
+            
             {/* Badges */}
             <div className="absolute left-2 top-2 flex flex-col gap-1">
               {discount > 0 && (
-                <Badge className="bg-destructive text-destructive-foreground rounded-sm font-mono text-[10px]">
+                <Badge className="bg-destructive text-destructive-foreground">
                   -{discount}%
                 </Badge>
               )}
               {product.best_seller && (
-                <Badge className="bg-accent text-accent-foreground border-0 rounded-sm font-mono text-[10px]">
-                  HOT
+                <Badge className="gradient-accent text-accent-foreground border-0">
+                  Best Seller
                 </Badge>
               )}
               {product.featured && !product.best_seller && (
-                <Badge className="bg-primary text-primary-foreground border-0 rounded-sm font-mono text-[10px]">
-                  FEAT
+                <Badge className="gradient-primary text-primary-foreground border-0">
+                  Featured
                 </Badge>
               )}
               {product.stock === 0 && (
-                <Badge variant="secondary" className="rounded-sm font-mono text-[10px]">
-                  OOS
-                </Badge>
+                <Badge variant="secondary">Out of Stock</Badge>
               )}
             </div>
 
-            {/* Quick actions */}
-            <div className="absolute right-2 top-2 flex flex-col gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+            {/* Quick Actions */}
+            <div className="absolute right-2 top-2 flex flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
               <Button
                 variant="secondary"
                 size="icon"
-                className="h-8 w-8 rounded-sm shadow-lg"
+                className="h-9 w-9 rounded-full shadow-lg"
                 onClick={handleToggleWishlist}
               >
                 <Heart
-                  className={`h-3.5 w-3.5 ${isWishlisted ? 'fill-destructive text-destructive' : ''}`}
+                  className={`h-4 w-4 ${isWishlisted ? 'fill-destructive text-destructive' : ''}`}
                 />
               </Button>
               <Button
                 variant="secondary"
                 size="icon"
-                className="h-8 w-8 rounded-sm shadow-lg"
+                className="h-9 w-9 rounded-full shadow-lg"
               >
-                <Eye className="h-3.5 w-3.5" />
+                <Eye className="h-4 w-4" />
               </Button>
             </div>
 
-            {/* Add to cart */}
+            {/* Add to Cart Button */}
             <div className="absolute bottom-0 left-0 right-0 translate-y-full transition-transform group-hover:translate-y-0">
               <Button
-                className="w-full rounded-none gradient-primary border-0 font-mono text-xs tracking-wider h-9"
+                className="w-full rounded-none gradient-primary border-0"
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
               >
-                <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
-                {product.stock === 0 ? 'OUT_OF_STOCK' : 'ADD_TO_CART'}
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
               </Button>
             </div>
           </div>
 
           {/* Content */}
-          <CardContent className="p-3">
+          <CardContent className="p-4">
+            {/* Category */}
             {product.category && (
-              <p className="font-mono text-[9px] text-muted-foreground tracking-wider uppercase mb-1">
+              <p className="text-xs text-muted-foreground mb-1">
                 {product.category.name}
               </p>
             )}
 
-            <h3 className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors leading-tight">
+            {/* Title */}
+            <h3 className="font-medium line-clamp-2 group-hover:text-primary transition-colors">
               {product.name}
             </h3>
 
             {/* Rating */}
-            <div className="flex items-center gap-1 mt-1.5">
+            <div className="flex items-center gap-1 mt-2">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-3 w-3 ${
+                    className={`h-3.5 w-3.5 ${
                       i < Math.floor(product.rating)
                         ? 'fill-accent text-accent'
-                        : 'text-muted-foreground/20'
+                        : 'text-muted-foreground/30'
                     }`}
                   />
                 ))}
               </div>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 ({product.review_count})
               </span>
             </div>
 
             {/* Price */}
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-base font-bold text-primary font-mono">
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-lg font-bold text-primary">
                 {formatPrice(product.price)}
               </span>
               {product.original_price && product.original_price > product.price && (
-                <span className="text-xs text-muted-foreground line-through font-mono">
+                <span className="text-sm text-muted-foreground line-through">
                   {formatPrice(product.original_price)}
                 </span>
               )}
             </div>
 
+            {/* Stock indicator */}
             {product.stock > 0 && product.stock <= 10 && (
-              <p className="mt-1 font-mono text-[10px] text-destructive">
-                ⚠ {product.stock} units remaining
+              <p className="mt-1 text-xs text-destructive">
+                Only {product.stock} left in stock!
               </p>
             )}
           </CardContent>
