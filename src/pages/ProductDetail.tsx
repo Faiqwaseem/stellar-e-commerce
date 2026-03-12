@@ -67,13 +67,7 @@ export default function ProductDetail() {
         }
 
         // Fetch reviews
-        const { data: reviewsData } = await supabase
-          .from('reviews')
-          .select('*')
-          .eq('product_id', id)
-          .order('created_at', { ascending: false });
-
-        if (reviewsData) setReviews(reviewsData as Review[]);
+        fetchReviews(id);
       }
 
       setLoading(false);
@@ -81,6 +75,15 @@ export default function ProductDetail() {
 
     fetchProduct();
   }, [id]);
+
+  const fetchReviews = async (productId: string) => {
+    const { data: reviewsData } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('product_id', productId)
+      .order('created_at', { ascending: false });
+    if (reviewsData) setReviews(reviewsData as Review[]);
+  };
 
   if (loading) {
     return (
