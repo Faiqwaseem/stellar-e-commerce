@@ -23,6 +23,7 @@ import { ProductCard } from '@/components/products/ProductCard';
 import { formatPrice, calculateDiscount } from '@/lib/formatters';
 import { useCartStore } from '@/stores/cartStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
+import { ReviewForm } from '@/components/products/ReviewForm';
 import { toast } from 'sonner';
 
 export default function ProductDetail() {
