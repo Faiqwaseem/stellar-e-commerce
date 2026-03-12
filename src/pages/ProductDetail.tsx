@@ -415,10 +415,13 @@ export default function ProductDetail() {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-8">
+              <p className="text-muted-foreground text-center py-8">
                   No reviews yet. Be the first to review this product!
                 </p>
               )}
+              <div className="mt-6">
+                <ReviewForm productId={product.id} onReviewAdded={() => fetchReviews(product.id)} />
+              </div>
             </TabsContent>
             <TabsContent value="related" className="mt-6">
               {relatedProducts.length > 0 ? (
