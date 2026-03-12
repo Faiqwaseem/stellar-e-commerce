@@ -23,6 +23,7 @@ import { ProductCard } from '@/components/products/ProductCard';
 import { formatPrice, calculateDiscount } from '@/lib/formatters';
 import { useCartStore } from '@/stores/cartStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
+import { ReviewForm } from '@/components/products/ReviewForm';
 import { toast } from 'sonner';
 
 export default function ProductDetail() {
@@ -66,13 +67,7 @@ export default function ProductDetail() {
         }
 
         // Fetch reviews
-        const { data: reviewsData } = await supabase
-          .from('reviews')
-          .select('*')
-          .eq('product_id', id)
-          .order('created_at', { ascending: false });
-
-        if (reviewsData) setReviews(reviewsData as Review[]);
+        fetchReviews(id);
       }
 
       setLoading(false);
@@ -80,6 +75,15 @@ export default function ProductDetail() {
 
     fetchProduct();
   }, [id]);
+
+  const fetchReviews = async (productId: string) => {
+    const { data: reviewsData } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('product_id', productId)
+      .order('created_at', { ascending: false });
+    if (reviewsData) setReviews(reviewsData as Review[]);
+  };
 
   if (loading) {
     return (
@@ -411,10 +415,13 @@ export default function ProductDetail() {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-8">
+              <p className="text-muted-foreground text-center py-8">
                   No reviews yet. Be the first to review this product!
                 </p>
               )}
+              <div className="mt-6">
+                <ReviewForm productId={product.id} onReviewAdded={() => fetchReviews(product.id)} />
+              </div>
             </TabsContent>
             <TabsContent value="related" className="mt-6">
               {relatedProducts.length > 0 ? (
