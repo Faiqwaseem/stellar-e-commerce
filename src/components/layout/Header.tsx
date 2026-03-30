@@ -62,31 +62,32 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* Top bar - Promo */}
-      <div className="gradient-primary text-primary-foreground py-2 text-center text-sm font-medium">
+      <div className="gradient-primary text-primary-foreground py-2 text-center text-xs md:text-sm font-medium overflow-hidden">
         <motion.p
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="container"
+          className="container flex items-center justify-center gap-2"
         >
-          🎉 Free Delivery on orders over PKR 5,000 | Use code: MYSTORE10 for 10% off
+          <span className="inline-block animate-bounce">🎉</span>
+          Free Delivery on orders over PKR 5,000 | Use code: <span className="font-bold bg-white/20 px-2 py-0.5 rounded-md">MYSTORE10</span> for 10% off
         </motion.p>
       </div>
 
       {/* Main header */}
-      <div className="glass border-b">
+      <div className="glass border-b shadow-sm">
         <div className="container">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2.5">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2.5"
               >
-                <div className="gradient-primary rounded-lg p-2">
-                  <ShoppingCart className="h-6 w-6 text-primary-foreground" />
+                <div className="gradient-primary rounded-xl p-2 shadow-glow">
+                  <ShoppingCart className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <span className="hidden font-display text-2xl font-bold text-foreground sm:inline-block">
+                <span className="hidden font-display text-xl font-bold text-foreground sm:inline-block tracking-tight">
                   My<span className="text-primary">Store</span>
                 </span>
               </motion.div>
@@ -97,28 +98,28 @@ export function Header() {
               onSubmit={handleSearch}
               className="hidden flex-1 max-w-xl md:flex"
             >
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <div className="relative w-full group">
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
                 <Input
                   type="search"
                   placeholder="Search products, brands, and more..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4"
+                  className="w-full pl-10 pr-4 rounded-xl h-11 bg-muted/50 border-border/50 focus:bg-background transition-colors"
                 />
               </div>
             </form>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <ThemeToggle />
 
               {/* Wishlist */}
               <Link to="/wishlist">
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative rounded-xl">
                   <Heart className="h-5 w-5" />
                   {wishlistItems.length > 0 && (
-                    <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-xs gradient-primary border-0">
+                    <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-[10px] gradient-primary border-0 shadow-glow">
                       {wishlistItems.length}
                     </Badge>
                   )}
@@ -127,10 +128,10 @@ export function Header() {
 
               {/* Cart */}
               <Link to="/cart">
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative rounded-xl">
                   <ShoppingCart className="h-5 w-5" />
                   {getTotalItems() > 0 && (
-                    <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-xs gradient-primary border-0">
+                    <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-[10px] gradient-primary border-0 shadow-glow">
                       {getTotalItems()}
                     </Badge>
                   )}
@@ -141,13 +142,13 @@ export function Header() {
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="rounded-xl">
                       <User className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <div className="px-2 py-1.5">
-                      <p className="text-sm font-medium">{user.email}</p>
+                  <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                    <div className="px-3 py-2">
+                      <p className="text-sm font-semibold">{user.email}</p>
                       <p className="text-xs text-muted-foreground">
                         {isAdmin ? 'Administrator' : 'Customer'}
                       </p>
@@ -185,7 +186,7 @@ export function Header() {
                 </DropdownMenu>
               ) : (
                 <Link to="/login">
-                  <Button variant="default" size="sm" className="gradient-primary border-0">
+                  <Button variant="default" size="sm" className="gradient-primary border-0 rounded-xl shadow-glow font-semibold">
                     Sign In
                   </Button>
                 </Link>
@@ -195,7 +196,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden"
+                className="md:hidden rounded-xl"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
                 {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -208,17 +209,17 @@ export function Header() {
       {/* Categories Navigation - Desktop */}
       <nav className="hidden md:block bg-secondary text-secondary-foreground">
         <div className="container">
-          <ul className="flex items-center gap-1 py-2">
+          <ul className="flex items-center gap-0.5 py-1.5">
             <li>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-secondary-foreground hover:bg-secondary-foreground/10">
-                    <Menu className="h-4 w-4 mr-2" />
+                  <Button variant="ghost" size="sm" className="text-secondary-foreground hover:bg-secondary-foreground/10 rounded-lg text-xs font-semibold">
+                    <Menu className="h-3.5 w-3.5 mr-1.5" />
                     All Categories
-                    <ChevronDown className="h-4 w-4 ml-1" />
+                    <ChevronDown className="h-3.5 w-3.5 ml-1" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent className="rounded-xl">
                   {categories.map((category) => (
                     <DropdownMenuItem key={category.name} asChild>
                       <Link to={category.href}>{category.name}</Link>
@@ -230,7 +231,7 @@ export function Header() {
             {categories.slice(0, 5).map((category) => (
               <li key={category.name}>
                 <Link to={category.href}>
-                  <Button variant="ghost" size="sm" className="text-secondary-foreground hover:bg-secondary-foreground/10">
+                  <Button variant="ghost" size="sm" className="text-secondary-foreground hover:bg-secondary-foreground/10 rounded-lg text-xs font-medium">
                     {category.name}
                   </Button>
                 </Link>
@@ -247,33 +248,33 @@ export function Header() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-background border-b"
+            className="md:hidden bg-background border-b shadow-lg"
           >
             <div className="container py-4 space-y-4">
               {/* Mobile Search */}
               <form onSubmit={handleSearch}>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     type="search"
                     placeholder="Search products..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 rounded-xl"
                   />
                 </div>
               </form>
 
               {/* Mobile Categories */}
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Categories</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categories</p>
                 <div className="grid grid-cols-2 gap-2">
                   {categories.map((category) => (
                     <Link
                       key={category.name}
                       to={category.href}
                       onClick={() => setIsMenuOpen(false)}
-                      className="rounded-md bg-muted px-3 py-2 text-sm hover:bg-muted/80 transition-colors"
+                      className="rounded-xl bg-muted/50 px-3 py-2.5 text-sm font-medium hover:bg-muted transition-colors"
                     >
                       {category.name}
                     </Link>
