@@ -72,8 +72,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Outfit", "Inter", "system-ui", "sans-serif"],
+        sans: ["'Plus Jakarta Sans'", "system-ui", "sans-serif"],
+        display: ["'Space Grotesk'", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
@@ -89,7 +89,7 @@ export default {
           to: { opacity: "1", transform: "translateY(0)" },
         },
         "fade-up": {
-          from: { opacity: "0", transform: "translateY(20px)" },
+          from: { opacity: "0", transform: "translateY(24px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
         "slide-in-right": {
@@ -114,6 +114,10 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        "spin-slow": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -125,10 +129,12 @@ export default {
         "scale-in": "scale-in 0.3s ease-out",
         "bounce-in": "bounce-in 0.6s ease-out",
         float: "float 3s ease-in-out infinite",
+        "spin-slow": "spin-slow 8s linear infinite",
       },
       boxShadow: {
-        glow: "0 0 20px rgba(249, 115, 22, 0.3)",
-        "glow-lg": "0 0 40px rgba(249, 115, 22, 0.4)",
+        glow: "0 0 24px -4px hsl(18 92% 55% / 0.4)",
+        "glow-lg": "0 0 48px -8px hsl(18 92% 55% / 0.5)",
+        premium: "0 8px 32px -8px rgb(0 0 0 / 0.12), 0 2px 8px -2px rgb(0 0 0 / 0.06)",
       },
     },
   },
