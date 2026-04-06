@@ -25,6 +25,14 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import FAQ from "./pages/FAQ";
+import Shipping from "./pages/Shipping";
+import Returns from "./pages/Returns";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Careers from "./pages/Careers";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +61,14 @@ const App = () => (
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/orders/:id" element={<OrderDetail />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/shipping" element={<Shipping />} />
+                <Route path="/returns" element={<Returns />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/careers" element={<Careers />} />
               </Route>
 
               {/* Admin Routes */}
