@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCartStore } from '@/stores/cartStore';
 import { formatPrice } from '@/lib/formatters';
+import { SEO } from '@/components/SEO';
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
@@ -39,6 +40,7 @@ export default function Cart() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Shopping Cart" description="Review items in your MyStore shopping cart. Checkout securely with free delivery on orders over PKR 5,000." />
       {/* Breadcrumb */}
       <div className="bg-muted/50 py-4">
         <div className="container">

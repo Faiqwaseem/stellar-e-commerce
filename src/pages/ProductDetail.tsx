@@ -25,6 +25,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
 import { ReviewForm } from '@/components/products/ReviewForm';
 import { toast } from 'sonner';
+import { SEO } from '@/components/SEO';
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -139,6 +140,34 @@ export default function ProductDetail() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={product.name}
+        description={product.description?.slice(0, 155) || `Buy ${product.name} at MyStore Pakistan. Best price guaranteed.`}
+        image={product.images?.[0]}
+        type="product"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: product.name,
+          description: product.description,
+          image: product.images,
+          offers: {
+            '@type': 'Offer',
+            price: product.price,
+            priceCurrency: 'PKR',
+            availability: product.stock > 0
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock',
+          },
+          aggregateRating: product.review_count > 0
+            ? {
+                '@type': 'AggregateRating',
+                ratingValue: product.rating,
+                reviewCount: product.review_count,
+              }
+            : undefined,
+        }}
+      />
       {/* Breadcrumb */}
       <div className="bg-muted/50 py-4">
         <div className="container">

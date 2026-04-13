@@ -4,6 +4,7 @@ import { Filter, SlidersHorizontal } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product, Category } from '@/types';
 import { ProductGrid } from '@/components/products';
+import { SEO } from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -210,6 +211,10 @@ export default function Products() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={categoryFilter ? `${categoryFilter} Products` : 'All Products'}
+        description={categoryFilter ? `Browse ${categoryFilter} products at MyStore Pakistan. Best prices and free delivery.` : 'Browse our full catalog of electronics, fashion, home essentials and more at MyStore Pakistan.'}
+      />
       {/* Breadcrumb */}
       <div className="bg-muted/50 py-4">
         <div className="container">

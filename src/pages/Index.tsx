@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product, Category } from '@/types';
+import { SEO } from '@/components/SEO';
 import {
   HeroSlider,
   CategoriesSection,
@@ -54,6 +55,21 @@ export default function Index() {
 
   return (
     <>
+      <SEO
+        title="Home"
+        description="Shop the latest electronics, fashion, home essentials & more at MyStore Pakistan. Free delivery on orders over PKR 5,000."
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'MyStore',
+          url: 'https://mystore.pk',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: 'https://mystore.pk/products?search={search_term_string}',
+            'query-input': 'required name=search_term_string',
+          },
+        }}
+      />
       <HeroSlider />
       <FeaturesBanner />
       <CategoriesSection categories={categories} loading={loading} />
