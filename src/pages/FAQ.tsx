@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { HelpCircle } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { SEO } from '@/components/SEO';
 
 const faqCategories = [
   {
@@ -41,6 +42,7 @@ const faqCategories = [
 export default function FAQ() {
   return (
     <div className="min-h-screen">
+      <SEO title="FAQ" description="Find answers to frequently asked questions about MyStore Pakistan — orders, shipping, returns, payments, and more." />
       <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 md:py-24">
         <div className="container text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-4">

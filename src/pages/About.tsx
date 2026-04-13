@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Heart, Target, Eye, ShieldCheck, Truck, Headphones, Award } from 'lucide-react';
+import { SEO } from '@/components/SEO';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -16,6 +17,7 @@ const values = [
 export default function About() {
   return (
     <div className="min-h-screen">
+      <SEO title="About Us" description="Learn about MyStore — Pakistan's trusted online store for electronics, fashion, and home essentials. Our mission, values, and story." />
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/10 py-20 md:py-28">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary)/0.08),transparent_60%)]" />

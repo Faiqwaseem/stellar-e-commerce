@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { SEO } from '@/components/SEO';
 import { FileText, ShoppingBag, CreditCard, Scale, AlertTriangle, Gavel } from 'lucide-react';
 
 const sections = [
@@ -13,6 +14,7 @@ const sections = [
 export default function Terms() {
   return (
     <div className="min-h-screen">
+      <SEO title="Terms & Conditions" description="Read MyStore Pakistan's terms and conditions. Understand your rights and responsibilities when shopping with us." />
       <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 md:py-24">
         <div className="container text-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="font-display text-4xl md:text-5xl font-bold mb-4">

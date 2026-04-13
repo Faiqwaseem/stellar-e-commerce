@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { SEO } from '@/components/SEO';
 import { Truck, Clock, Globe, Package, MapPin, AlertCircle } from 'lucide-react';
 
 const sections = [
@@ -31,6 +32,7 @@ const sections = [
 export default function Shipping() {
   return (
     <div className="min-h-screen">
+      <SEO title="Shipping Policy" description="Learn about MyStore Pakistan's shipping policy — delivery times, charges, tracking, and more." />
       <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 md:py-24">
         <div className="container text-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="font-display text-4xl md:text-5xl font-bold mb-4">

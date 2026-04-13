@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { SEO } from '@/components/SEO';
 import { Briefcase, MapPin, Clock, ArrowRight, Users, Zap, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,6 +54,7 @@ function ApplyDialog({ jobTitle }: { jobTitle: string }) {
 export default function Careers() {
   return (
     <div className="min-h-screen">
+      <SEO title="Careers" description="Join the MyStore team! Explore open positions and grow your career with Pakistan's leading online store." />
       <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 md:py-24">
         <div className="container text-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="font-display text-4xl md:text-5xl font-bold mb-4">

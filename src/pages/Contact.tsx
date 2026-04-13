@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { SEO } from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -47,6 +48,7 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen">
+      <SEO title="Contact Us" description="Get in touch with MyStore Pakistan. Reach out for support, inquiries, or feedback. We're here to help!" />
       {/* Hero */}
       <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 md:py-24">
         <div className="container text-center">

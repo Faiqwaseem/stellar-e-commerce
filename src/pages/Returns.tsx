@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import { RotateCcw, CheckCircle2, XCircle, Clock, ArrowRight } from 'lucide-react';
+import { SEO } from '@/components/SEO';
 
 export default function Returns() {
   return (
     <div className="min-h-screen">
+      <SEO title="Return & Refund Policy" description="MyStore Pakistan's return and refund policy. Easy 7-day returns on eligible products." />
       <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 md:py-24">
         <div className="container text-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="font-display text-4xl md:text-5xl font-bold mb-4">
