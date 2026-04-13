@@ -40,6 +40,7 @@ export default function Cart() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Shopping Cart" description="Review items in your MyStore shopping cart. Checkout securely with free delivery on orders over PKR 5,000." />
       {/* Breadcrumb */}
       <div className="bg-muted/50 py-4">
         <div className="container">
