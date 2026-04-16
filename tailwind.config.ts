@@ -72,8 +72,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["'Plus Jakarta Sans'", "system-ui", "sans-serif"],
-        display: ["'Space Grotesk'", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "'Space Grotesk'", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
