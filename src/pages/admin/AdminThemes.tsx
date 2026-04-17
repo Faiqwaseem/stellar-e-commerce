@@ -247,6 +247,14 @@ export default function AdminThemes() {
               <Badge variant="outline">Custom</Badge>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setMode(isDark ? 'light' : 'dark')}
+                title="Toggle site mode"
+              >
+                {isDark ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                {isDark ? 'Light' : 'Dark'} Mode
+              </Button>
               <Button variant="outline" onClick={() => setEditingTheme(null)}>
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Cancel
