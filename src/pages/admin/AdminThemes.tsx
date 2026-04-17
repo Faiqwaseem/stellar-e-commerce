@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { Palette, Check, Trash2, Plus, Copy, Eye, Save, RotateCcw } from 'lucide-react';
+import { Palette, Check, Trash2, Plus, Copy, Eye, Save, RotateCcw, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -102,7 +102,7 @@ function ThemePreviewCard({ theme, isDark }: { theme: ThemeConfig; isDark: boole
 
 export default function AdminThemes() {
   const { toast } = useToast();
-  const { theme: currentMode } = useTheme();
+  const { theme: currentMode, setTheme: setMode } = useTheme();
   const isDark = currentMode === 'dark';
   const {
     activeThemeId,
@@ -125,6 +125,13 @@ export default function AdminThemes() {
     const theme = getActiveTheme();
     applyTheme(theme, isDark);
   }, [activeThemeId, isDark, getActiveTheme]);
+
+  // Live-apply while editing the active theme so admins see changes site-wide
+  useEffect(() => {
+    if (editingTheme && editingTheme.id === activeThemeId) {
+      applyTheme(editingTheme, isDark);
+    }
+  }, [editingTheme, isDark, activeThemeId]);
 
   const handleActivate = (id: string) => {
     setActiveTheme(id);
@@ -240,6 +247,14 @@ export default function AdminThemes() {
               <Badge variant="outline">Custom</Badge>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setMode(isDark ? 'light' : 'dark')}
+                title="Toggle site mode"
+              >
+                {isDark ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                {isDark ? 'Light' : 'Dark'} Mode
+              </Button>
               <Button variant="outline" onClick={() => setEditingTheme(null)}>
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Cancel
