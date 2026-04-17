@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Package, ArrowLeft, MapPin, Phone, CreditCard, Clock } from 'lucide-react';
+import { Package, ArrowLeft, MapPin, Phone, CreditCard, Clock, Printer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -123,7 +123,7 @@ export default function OrderDetail() {
         </div>
       </div>
 
-      <div className="container py-8">
+      <div className="container py-8 print-receipt">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl md:text-3xl font-display font-bold">
@@ -131,9 +131,15 @@ export default function OrderDetail() {
             </h1>
             <p className="text-muted-foreground">Placed on {formatDate(order.created_at)}</p>
           </div>
-          <Badge className={`${statusColors[order.status] || ''} text-sm px-4 py-1`}>
-            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="no-print">
+              <Printer className="h-4 w-4 mr-2" />
+              Print Receipt
+            </Button>
+            <Badge className={`${statusColors[order.status] || ''} text-sm px-4 py-1`}>
+              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+            </Badge>
+          </div>
         </div>
 
         {/* Order Progress */}
