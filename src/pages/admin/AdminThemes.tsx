@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { Palette, Check, Trash2, Plus, Copy, Eye, Save, RotateCcw } from 'lucide-react';
+import { Palette, Check, Trash2, Plus, Copy, Eye, Save, RotateCcw, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
