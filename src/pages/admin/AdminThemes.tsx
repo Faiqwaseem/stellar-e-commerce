@@ -102,7 +102,7 @@ function ThemePreviewCard({ theme, isDark }: { theme: ThemeConfig; isDark: boole
 
 export default function AdminThemes() {
   const { toast } = useToast();
-  const { theme: currentMode } = useTheme();
+  const { theme: currentMode, setTheme: setMode } = useTheme();
   const isDark = currentMode === 'dark';
   const {
     activeThemeId,
@@ -125,6 +125,13 @@ export default function AdminThemes() {
     const theme = getActiveTheme();
     applyTheme(theme, isDark);
   }, [activeThemeId, isDark, getActiveTheme]);
+
+  // Live-apply while editing the active theme so admins see changes site-wide
+  useEffect(() => {
+    if (editingTheme && editingTheme.id === activeThemeId) {
+      applyTheme(editingTheme, isDark);
+    }
+  }, [editingTheme, isDark, activeThemeId]);
 
   const handleActivate = (id: string) => {
     setActiveTheme(id);
