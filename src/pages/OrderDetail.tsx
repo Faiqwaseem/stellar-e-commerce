@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Package, ArrowLeft, MapPin, Phone, CreditCard, Clock, Printer, XCircle } from 'lucide-react';
+import { Package, ArrowLeft, MapPin, Phone, CreditCard, Clock, Printer, XCircle, Truck, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { OrderTimeline } from '@/components/orders/OrderTimeline';
 import { formatPrice, formatDate } from '@/lib/formatters';
 import { toast } from 'sonner';
 
@@ -22,6 +23,11 @@ interface OrderData {
   phone: string;
   created_at: string;
   updated_at: string;
+  tracking_number: string | null;
+  carrier: string | null;
+  tracking_url: string | null;
+  coupon_code: string | null;
+  discount_amount: number | null;
 }
 
 interface OrderItemData {
@@ -122,8 +128,9 @@ export default function OrderDetail() {
   }
 
   const currentStep = statusSteps.indexOf(order.status);
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = order.total_amount - subtotal;
+  const itemsTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discount = Number(order.discount_amount) || 0;
+  const shipping = order.total_amount - itemsTotal + discount;
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,7 +189,7 @@ export default function OrderDetail() {
           </div>
         </div>
 
-        {/* Order Progress */}
+        {/* Order Progress + Tracking */}
         {order.status !== 'cancelled' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -190,7 +197,7 @@ export default function OrderDetail() {
             className="bg-card rounded-xl border p-6 mb-8"
           >
             <h2 className="text-lg font-semibold mb-6">Order Progress</h2>
-            <div className="flex items-center justify-between relative">
+            <div className="flex items-center justify-between relative mb-6">
               <div className="absolute top-5 left-0 right-0 h-1 bg-muted">
                 <div
                   className="h-full gradient-primary transition-all duration-500"
@@ -212,8 +219,41 @@ export default function OrderDetail() {
                 </div>
               ))}
             </div>
+
+            {(order.tracking_number || order.carrier) && (
+              <div className="rounded-lg border bg-muted/30 p-4 flex flex-wrap items-center gap-3 justify-between">
+                <div className="flex items-center gap-3">
+                  <Truck className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium">
+                      {order.carrier || 'Shipment'}
+                      {order.tracking_number && (
+                        <span className="font-mono text-muted-foreground ml-2">#{order.tracking_number}</span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Tracking information</p>
+                  </div>
+                </div>
+                {order.tracking_url && (
+                  <a href={order.tracking_url} target="_blank" rel="noopener noreferrer">
+                    <Button size="sm" variant="outline">
+                      Track <ExternalLink className="h-3 w-3 ml-1" />
+                    </Button>
+                  </a>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
+
+        <div className="grid lg:grid-cols-3 gap-8 mb-8">
+          <div className="lg:col-span-2 bg-card rounded-xl border p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" /> Status History
+            </h2>
+            <OrderTimeline orderId={order.id} />
+          </div>
+        </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Order Items */}
@@ -265,8 +305,14 @@ export default function OrderDetail() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatPrice(subtotal)}</span>
+                  <span>{formatPrice(itemsTotal)}</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Discount{order.coupon_code ? ` (${order.coupon_code})` : ''}</span>
+                    <span className="text-success">−{formatPrice(discount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
                   <span className={shipping <= 0 ? 'text-success' : ''}>

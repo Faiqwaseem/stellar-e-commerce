@@ -4,15 +4,20 @@ import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCartStore } from '@/stores/cartStore';
+import { useCouponStore } from '@/stores/couponStore';
+import { CouponInput } from '@/components/checkout/CouponInput';
 import { formatPrice } from '@/lib/formatters';
 import { SEO } from '@/components/SEO';
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
+  const { applied } = useCouponStore();
 
   const subtotal = getTotalPrice();
-  const shipping = subtotal > 5000 ? 0 : 250;
-  const total = subtotal + shipping;
+  const baseShipping = subtotal > 5000 ? 0 : 250;
+  const shipping = applied?.free_shipping ? 0 : baseShipping;
+  const discount = applied?.discount || 0;
+  const total = Math.max(subtotal - discount, 0) + shipping;
 
   if (items.length === 0) {
     return (
@@ -147,17 +152,27 @@ export default function Cart() {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Discount</span>
+                    <span className="text-success">−{formatPrice(discount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
                   <span className={shipping === 0 ? 'text-success' : ''}>
                     {shipping === 0 ? 'Free' : formatPrice(shipping)}
                   </span>
                 </div>
-                {shipping > 0 && (
+                {shipping > 0 && !applied?.free_shipping && (
                   <p className="text-xs text-muted-foreground">
                     Add {formatPrice(5000 - subtotal)} more for free shipping!
                   </p>
                 )}
+              </div>
+
+              <div className="my-4">
+                <CouponInput subtotal={subtotal} />
               </div>
 
               <Separator className="my-4" />
@@ -175,7 +190,7 @@ export default function Cart() {
               </Link>
 
               <p className="text-xs text-center text-muted-foreground mt-4">
-                Secure checkout powered by Stripe
+                Cash on Delivery — pay when you receive your order
               </p>
             </div>
           </div>
