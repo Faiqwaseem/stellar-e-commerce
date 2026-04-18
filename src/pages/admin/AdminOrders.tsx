@@ -26,6 +26,9 @@ interface AdminOrder {
   shipping_city: string;
   phone: string;
   created_at: string;
+  tracking_number?: string | null;
+  carrier?: string | null;
+  tracking_url?: string | null;
 }
 
 interface OrderItem {
@@ -346,6 +349,8 @@ export default function AdminOrders() {
                   </Select>
                 </div>
               </div>
+              <Separator />
+              <TrackingEditor order={selectedOrder} onSaved={(o) => { setSelectedOrder(o); setOrders(prev => prev.map(p => p.id === o.id ? o : p)); }} />
               <Separator />
               <div>
                 <h3 className="font-semibold mb-2">Items</h3>
