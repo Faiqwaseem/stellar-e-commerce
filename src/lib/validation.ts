@@ -83,5 +83,5 @@ export const reviewSchema = z.object({
 
 // ===== Helper =====
 export function formatZodError(err: z.ZodError): string {
-  return err.errors.map((e) => e.message).join('. ');
+  return err.issues.map((e) => e.message).join('. ');
 }
