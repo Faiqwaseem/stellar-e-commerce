@@ -9,6 +9,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useCartStore } from '@/stores/cartStore';
+import { useCouponStore } from '@/stores/couponStore';
+import { CouponInput } from '@/components/checkout/CouponInput';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatters';
@@ -18,6 +20,7 @@ import { toast } from 'sonner';
 
 export default function Checkout() {
   const { items, getTotalPrice, clearCart } = useCartStore();
+  const { applied, clear: clearCoupon } = useCouponStore();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -32,8 +35,10 @@ export default function Checkout() {
   const [addressBookOpen, setAddressBookOpen] = useState(false);
 
   const subtotal = getTotalPrice();
-  const shipping = subtotal > 5000 ? 0 : 250;
-  const total = subtotal + shipping;
+  const baseShipping = subtotal > 5000 ? 0 : 250;
+  const shipping = applied?.free_shipping ? 0 : baseShipping;
+  const discount = applied?.discount || 0;
+  const total = Math.max(subtotal - discount, 0) + shipping;
 
   // Auto-fill from default saved address
   useEffect(() => {
@@ -106,11 +111,13 @@ export default function Checkout() {
         _shipping_city: parsed.data.city,
         _phone: parsed.data.phone,
         _payment_method: parsed.data.paymentMethod,
-      });
+        _coupon_code: applied?.code || null,
+      } as any);
 
       if (error) throw error;
 
       clearCart();
+      clearCoupon();
       toast.success('Order placed successfully!');
       navigate(`/order-success?orderId=${orderId}`);
     } catch (error: any) {
@@ -224,10 +231,19 @@ export default function Checkout() {
                 <Separator className="my-4" />
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPrice(subtotal)}</span></div>
+                  {discount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Discount ({applied?.code})</span>
+                      <span className="text-success">−{formatPrice(discount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipping</span>
                     <span className={shipping === 0 ? 'text-success' : ''}>{shipping === 0 ? 'Free' : formatPrice(shipping)}</span>
                   </div>
+                </div>
+                <div className="my-4">
+                  <CouponInput subtotal={subtotal} />
                 </div>
                 <Separator className="my-4" />
                 <div className="flex justify-between font-semibold text-lg mb-6">
