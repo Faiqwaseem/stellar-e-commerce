@@ -227,6 +227,15 @@ export default function Profile() {
               </form>
             )}
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-card rounded-xl border p-6 md:p-8 mt-6"
+          >
+            <AddressBook />
+          </motion.div>
         </div>
       </div>
     </div>

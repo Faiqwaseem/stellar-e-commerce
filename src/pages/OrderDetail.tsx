@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Package, ArrowLeft, MapPin, Phone, CreditCard, Clock, Printer } from 'lucide-react';
+import { Package, ArrowLeft, MapPin, Phone, CreditCard, Clock, Printer, XCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { formatPrice, formatDate } from '@/lib/formatters';
+import { toast } from 'sonner';
 
 interface OrderData {
   id: string;
@@ -46,6 +48,20 @@ export default function OrderDetail() {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [items, setItems] = useState<OrderItemData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
+
+  const handleCancel = async () => {
+    if (!order) return;
+    setCancelling(true);
+    const { error } = await supabase.rpc('cancel_order', { _order_id: order.id });
+    setCancelling(false);
+    if (error) {
+      toast.error('Failed to cancel order', { description: error.message });
+      return;
+    }
+    toast.success('Order cancelled. Stock has been restored.');
+    setOrder({ ...order, status: 'cancelled' });
+  };
 
   useEffect(() => {
     async function fetchOrder() {
