@@ -128,8 +128,9 @@ export default function OrderDetail() {
   }
 
   const currentStep = statusSteps.indexOf(order.status);
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = order.total_amount - subtotal;
+  const itemsTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discount = Number(order.discount_amount) || 0;
+  const shipping = order.total_amount - itemsTotal + discount;
 
   return (
     <div className="min-h-screen bg-background">
