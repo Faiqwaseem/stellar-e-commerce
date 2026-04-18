@@ -390,3 +390,42 @@ function StatCard({ icon: Icon, label, value, accent, sub }: { icon: any; label:
     </Card>
   );
 }
+
+function TrackingEditor({ order, onSaved }: { order: AdminOrder; onSaved: (o: AdminOrder) => void }) {
+  const [tracking_number, setT] = useState(order.tracking_number || '');
+  const [carrier, setC] = useState(order.carrier || '');
+  const [tracking_url, setU] = useState(order.tracking_url || '');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setT(order.tracking_number || '');
+    setC(order.carrier || '');
+    setU(order.tracking_url || '');
+  }, [order.id]);
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase
+      .from('orders')
+      .update({ tracking_number: tracking_number || null, carrier: carrier || null, tracking_url: tracking_url || null })
+      .eq('id', order.id);
+    setSaving(false);
+    if (error) return toast.error('Failed to save tracking');
+    toast.success('Tracking updated');
+    onSaved({ ...order, tracking_number, carrier, tracking_url });
+  };
+
+  return (
+    <div className="space-y-2">
+      <h3 className="font-semibold text-sm">Shipment Tracking</h3>
+      <div className="grid grid-cols-2 gap-2">
+        <Input placeholder="Carrier (e.g. TCS)" value={carrier} onChange={(e) => setC(e.target.value)} />
+        <Input placeholder="Tracking #" value={tracking_number} onChange={(e) => setT(e.target.value)} />
+      </div>
+      <Input placeholder="Tracking URL (optional)" value={tracking_url} onChange={(e) => setU(e.target.value)} />
+      <Button size="sm" onClick={save} disabled={saving} className="gradient-primary border-0">
+        {saving ? 'Saving...' : 'Save Tracking'}
+      </Button>
+    </div>
+  );
+}
