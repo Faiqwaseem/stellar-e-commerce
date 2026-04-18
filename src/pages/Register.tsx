@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
+import { registerSchema, formatZodError } from '@/lib/validation';
 import { toast } from 'sonner';
 
 export default function Register() {
@@ -20,21 +21,13 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+    const parsed = registerSchema.safeParse({ fullName, email, password, confirmPassword });
+    if (!parsed.success) {
+      toast.error(formatZodError(parsed.error));
       return;
     }
-
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
-    }
-
     setLoading(true);
-
-    const { error } = await signUp(email, password, fullName);
-
+    const { error } = await signUp(parsed.data.email, parsed.data.password, parsed.data.fullName);
     if (error) {
       toast.error('Registration failed', { description: error.message });
     } else {
@@ -43,7 +36,6 @@ export default function Register() {
       });
       navigate('/login');
     }
-
     setLoading(false);
   };
 

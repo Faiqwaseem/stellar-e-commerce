@@ -30,8 +30,10 @@ export function ReviewForm({ productId, onReviewAdded }: ReviewFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (rating === 0) {
-      toast.error('Please select a rating');
+    const { reviewSchema, formatZodError } = await import('@/lib/validation');
+    const parsed = reviewSchema.safeParse({ rating, comment });
+    if (!parsed.success) {
+      toast.error(formatZodError(parsed.error));
       return;
     }
 
@@ -39,8 +41,8 @@ export function ReviewForm({ productId, onReviewAdded }: ReviewFormProps) {
     const { error } = await supabase.from('reviews').insert({
       product_id: productId,
       user_id: user.id,
-      rating,
-      comment: comment.trim() || null,
+      rating: parsed.data.rating,
+      comment: parsed.data.comment || null,
     });
 
     if (error) {
@@ -83,6 +85,7 @@ export function ReviewForm({ productId, onReviewAdded }: ReviewFormProps) {
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         rows={3}
+        maxLength={1000}
       />
       <Button type="submit" className="gradient-primary border-0" disabled={submitting}>
         {submitting ? 'Submitting...' : 'Submit Review'}

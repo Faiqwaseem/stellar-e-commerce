@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { profileSchema, formatZodError } from '@/lib/validation';
+import { AddressBook } from '@/components/profile/AddressBook';
 import { toast } from 'sonner';
 
 interface ProfileData {
@@ -65,16 +67,21 @@ export default function Profile() {
     e.preventDefault();
     if (!user) return;
 
-    setSaving(true);
+    const parsed = profileSchema.safeParse({
+      full_name: formData.full_name,
+      phone: formData.phone,
+      address: formData.address,
+      city: formData.city,
+    });
+    if (!parsed.success) {
+      toast.error(formatZodError(parsed.error));
+      return;
+    }
 
+    setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({
-        full_name: formData.full_name,
-        phone: formData.phone,
-        address: formData.address,
-        city: formData.city,
-      })
+      .update(parsed.data)
       .eq('id', user.id);
 
     if (error) {
@@ -82,7 +89,6 @@ export default function Profile() {
     } else {
       toast.success('Profile updated successfully!');
     }
-
     setSaving(false);
   };
 
@@ -220,6 +226,15 @@ export default function Profile() {
                 </Button>
               </form>
             )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-card rounded-xl border p-6 md:p-8 mt-6"
+          >
+            <AddressBook />
           </motion.div>
         </div>
       </div>

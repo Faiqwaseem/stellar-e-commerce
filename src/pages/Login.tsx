@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
+import { loginSchema, formatZodError } from '@/lib/validation';
 import { toast } from 'sonner';
 
 export default function Login() {
@@ -18,17 +19,19 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      toast.error(formatZodError(parsed.error));
+      return;
+    }
     setLoading(true);
-
-    const { error } = await signIn(email, password);
-
+    const { error } = await signIn(parsed.data.email, parsed.data.password);
     if (error) {
       toast.error('Login failed', { description: error.message });
     } else {
       toast.success('Welcome back!');
       navigate('/');
     }
-
     setLoading(false);
   };
 
@@ -106,6 +109,12 @@ export default function Login() {
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
+
+            <div className="text-center">
+              <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                Forgot password?
+              </Link>
+            </div>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">

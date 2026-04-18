@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Package, ArrowLeft, MapPin, Phone, CreditCard, Clock, Printer } from 'lucide-react';
+import { Package, ArrowLeft, MapPin, Phone, CreditCard, Clock, Printer, XCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { formatPrice, formatDate } from '@/lib/formatters';
+import { toast } from 'sonner';
 
 interface OrderData {
   id: string;
@@ -46,6 +48,20 @@ export default function OrderDetail() {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [items, setItems] = useState<OrderItemData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
+
+  const handleCancel = async () => {
+    if (!order) return;
+    setCancelling(true);
+    const { error } = await supabase.rpc('cancel_order', { _order_id: order.id });
+    setCancelling(false);
+    if (error) {
+      toast.error('Failed to cancel order', { description: error.message });
+      return;
+    }
+    toast.success('Order cancelled. Stock has been restored.');
+    setOrder({ ...order, status: 'cancelled' });
+  };
 
   useEffect(() => {
     async function fetchOrder() {
@@ -131,7 +147,31 @@ export default function OrderDetail() {
             </h1>
             <p className="text-muted-foreground">Placed on {formatDate(order.created_at)}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            {order.status === 'pending' && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="no-print text-destructive hover:text-destructive">
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Cancel Order
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel this order?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will cancel your pending order and restore stock. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep Order</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleCancel} disabled={cancelling}>
+                      {cancelling ? 'Cancelling...' : 'Yes, Cancel'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Button variant="outline" size="sm" onClick={() => window.print()} className="no-print">
               <Printer className="h-4 w-4 mr-2" />
               Print Receipt
