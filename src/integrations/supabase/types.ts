@@ -80,6 +80,95 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_redemptions: {
+        Row: {
+          coupon_id: string
+          created_at: string
+          discount_amount: number
+          id: string
+          order_id: string | null
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string
+          discount_amount: number
+          id?: string
+          order_id?: string | null
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          order_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          max_discount: number | null
+          min_order_amount: number
+          per_user_limit: number
+          starts_at: string
+          type: string
+          updated_at: string
+          usage_limit: number | null
+          used_count: number
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          max_discount?: number | null
+          min_order_amount?: number
+          per_user_limit?: number
+          starts_at?: string
+          type: string
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+          value?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          max_discount?: number | null
+          min_order_amount?: number
+          per_user_limit?: number
+          starts_at?: string
+          type?: string
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+          value?: number
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -125,9 +214,47 @@ export type Database = {
           },
         ]
       }
+      order_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          note: string | null
+          order_id: string
+          status: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          order_id: string
+          status: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          order_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
+          carrier: string | null
+          coupon_code: string | null
           created_at: string
+          discount_amount: number
           id: string
           payment_method: string | null
           payment_status: string | null
@@ -136,11 +263,16 @@ export type Database = {
           shipping_city: string
           status: string
           total_amount: number
+          tracking_number: string | null
+          tracking_url: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          carrier?: string | null
+          coupon_code?: string | null
           created_at?: string
+          discount_amount?: number
           id?: string
           payment_method?: string | null
           payment_status?: string | null
@@ -149,11 +281,16 @@ export type Database = {
           shipping_city: string
           status?: string
           total_amount: number
+          tracking_number?: string | null
+          tracking_url?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          carrier?: string | null
+          coupon_code?: string | null
           created_at?: string
+          discount_amount?: number
           id?: string
           payment_method?: string | null
           payment_status?: string | null
@@ -162,6 +299,8 @@ export type Database = {
           shipping_city?: string
           status?: string
           total_amount?: number
+          tracking_number?: string | null
+          tracking_url?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -355,6 +494,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_coupon: {
+        Args: { _code: string; _subtotal: number }
+        Returns: {
+          coupon_id: string
+          discount: number
+          free_shipping: boolean
+          message: string
+        }[]
+      }
       cancel_order: { Args: { _order_id: string }; Returns: undefined }
       has_role: {
         Args: {
@@ -364,16 +512,28 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
-      place_order: {
-        Args: {
-          _items: Json
-          _payment_method?: string
-          _phone: string
-          _shipping_address: string
-          _shipping_city: string
-        }
-        Returns: string
-      }
+      place_order:
+        | {
+            Args: {
+              _items: Json
+              _payment_method?: string
+              _phone: string
+              _shipping_address: string
+              _shipping_city: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _coupon_code?: string
+              _items: Json
+              _payment_method?: string
+              _phone: string
+              _shipping_address: string
+              _shipping_city: string
+            }
+            Returns: string
+          }
     }
     Enums: {
       app_role: "admin" | "user"
