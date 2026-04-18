@@ -147,7 +147,31 @@ export default function OrderDetail() {
             </h1>
             <p className="text-muted-foreground">Placed on {formatDate(order.created_at)}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            {order.status === 'pending' && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="no-print text-destructive hover:text-destructive">
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Cancel Order
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel this order?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will cancel your pending order and restore stock. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep Order</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleCancel} disabled={cancelling}>
+                      {cancelling ? 'Cancelling...' : 'Yes, Cancel'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Button variant="outline" size="sm" onClick={() => window.print()} className="no-print">
               <Printer className="h-4 w-4 mr-2" />
               Print Receipt
