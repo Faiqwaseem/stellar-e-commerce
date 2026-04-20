@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Package, ArrowLeft, MapPin, Phone, CreditCard, Clock, Printer, XCircle, Truck, ExternalLink } from 'lucide-react';
+import { Package, ArrowLeft, MapPin, Phone, CreditCard, Clock, Printer, XCircle, Truck, ExternalLink, FileDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -179,6 +179,16 @@ export default function OrderDetail() {
                 </AlertDialogContent>
               </AlertDialog>
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadInvoice}
+              disabled={downloading}
+              className="no-print"
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              {downloading ? 'Generating...' : 'Download Invoice'}
+            </Button>
             <Button variant="outline" size="sm" onClick={() => window.print()} className="no-print">
               <Printer className="h-4 w-4 mr-2" />
               Print Receipt
