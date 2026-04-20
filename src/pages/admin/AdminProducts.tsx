@@ -17,20 +17,33 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatPrice } from '@/lib/formatters';
 import { toast } from 'sonner';
+import { ProductImageUploader } from '@/components/admin/ProductImageUploader';
 
 interface Category {
   id: string;
   name: string;
 }
 
-const emptyProduct = {
+interface ProductForm {
+  name: string;
+  description: string;
+  price: string;
+  original_price: string;
+  category_id: string;
+  stock: string;
+  images: string[];
+  featured: boolean;
+  best_seller: boolean;
+}
+
+const emptyProduct: ProductForm = {
   name: '',
   description: '',
   price: '',
   original_price: '',
   category_id: '',
   stock: '',
-  images: '',
+  images: [],
   featured: false,
   best_seller: false,
 };
@@ -76,7 +89,7 @@ export default function AdminProducts() {
       original_price: product.original_price ? String(product.original_price) : '',
       category_id: product.category_id || '',
       stock: String(product.stock),
-      images: (product.images || []).join(', '),
+      images: product.images || [],
       featured: product.featured,
       best_seller: product.best_seller,
     });
@@ -97,7 +110,7 @@ export default function AdminProducts() {
       original_price: form.original_price ? Number(form.original_price) : null,
       category_id: form.category_id || null,
       stock: Number(form.stock) || 0,
-      images: form.images ? form.images.split(',').map((s) => s.trim()).filter(Boolean) : [],
+      images: form.images,
       featured: form.featured,
       best_seller: form.best_seller,
     };
@@ -262,8 +275,11 @@ export default function AdminProducts() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Image URLs (comma-separated)</Label>
-              <Input value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} placeholder="https://..." />
+              <Label>Product Images</Label>
+              <ProductImageUploader
+                images={form.images}
+                onChange={(imgs) => setForm({ ...form, images: imgs })}
+              />
             </div>
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 text-sm">
