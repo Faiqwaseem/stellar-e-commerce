@@ -55,6 +55,7 @@ export default function OrderDetail() {
   const [items, setItems] = useState<OrderItemData[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const handleCancel = async () => {
     if (!order) return;
@@ -67,6 +68,41 @@ export default function OrderDetail() {
     }
     toast.success('Order cancelled. Stock has been restored.');
     setOrder({ ...order, status: 'cancelled' });
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!order) return;
+    setDownloading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please sign in again');
+        return;
+      }
+      const url = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/generate-invoice?order_id=${order.id}`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || 'Failed to generate invoice');
+      }
+      const blob = await res.blob();
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `invoice-${order.id.slice(0, 8).toUpperCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+      toast.success('Invoice downloaded');
+    } catch (err) {
+      toast.error('Failed to download invoice', {
+        description: (err as Error).message,
+      });
+    } finally {
+      setDownloading(false);
+    }
   };
 
   useEffect(() => {
