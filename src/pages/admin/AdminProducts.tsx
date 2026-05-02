@@ -1,21 +1,22 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Plus, Pencil, Trash2, Search, Download, Layers } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatPrice } from '@/lib/formatters';
+import { downloadCSV } from '@/lib/csv';
 import { toast } from 'sonner';
 import { ProductImageUploader } from '@/components/admin/ProductImageUploader';
 
@@ -48,6 +49,8 @@ const emptyProduct: ProductForm = {
   best_seller: false,
 };
 
+type BulkMode = 'set_stock' | 'add_stock' | 'set_price' | 'adjust_price_pct';
+
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -57,6 +60,12 @@ export default function AdminProducts() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyProduct);
   const [saving, setSaving] = useState(false);
+
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkMode, setBulkMode] = useState<BulkMode>('set_stock');
+  const [bulkValue, setBulkValue] = useState('');
+  const [bulkRunning, setBulkRunning] = useState(false);
 
   const fetchProducts = async () => {
     const { data } = await supabase
@@ -74,11 +83,7 @@ export default function AdminProducts() {
     });
   }, []);
 
-  const openCreate = () => {
-    setEditingId(null);
-    setForm(emptyProduct);
-    setDialogOpen(true);
-  };
+  const openCreate = () => { setEditingId(null); setForm(emptyProduct); setDialogOpen(true); };
 
   const openEdit = (product: Product) => {
     setEditingId(product.id);
@@ -102,7 +107,6 @@ export default function AdminProducts() {
       return;
     }
     setSaving(true);
-
     const payload = {
       name: form.name,
       description: form.description || null,
@@ -143,9 +147,105 @@ export default function AdminProducts() {
     }
   };
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
+  const filtered = useMemo(
+    () => products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())),
+    [products, search]
   );
+
+  // ---- Bulk selection ----
+  const allFilteredSelected = filtered.length > 0 && filtered.every((p) => selected.has(p.id));
+  const toggleAllFiltered = () => {
+    const next = new Set(selected);
+    if (allFilteredSelected) {
+      filtered.forEach((p) => next.delete(p.id));
+    } else {
+      filtered.forEach((p) => next.add(p.id));
+    }
+    setSelected(next);
+  };
+  const toggleOne = (id: string) => {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
+
+  const runBulk = async () => {
+    const ids = Array.from(selected);
+    if (!ids.length) return;
+    const num = Number(bulkValue);
+    if (Number.isNaN(num)) return toast.error('Enter a valid number');
+
+    setBulkRunning(true);
+    try {
+      if (bulkMode === 'set_stock') {
+        const { error } = await supabase.from('products').update({ stock: Math.max(0, Math.floor(num)) }).in('id', ids);
+        if (error) throw error;
+      } else if (bulkMode === 'set_price') {
+        if (num < 0) throw new Error('Price must be ≥ 0');
+        const { error } = await supabase.from('products').update({ price: num }).in('id', ids);
+        if (error) throw error;
+      } else {
+        // Per-row math: add_stock or adjust_price_pct
+        const targets = products.filter((p) => selected.has(p.id));
+        const updates = targets.map((p) => {
+          if (bulkMode === 'add_stock') {
+            return { id: p.id, stock: Math.max(0, p.stock + Math.floor(num)) };
+          }
+          // adjust_price_pct: e.g. 10 = +10%, -15 = -15%
+          const newPrice = Math.max(0, +(p.price * (1 + num / 100)).toFixed(2));
+          return { id: p.id, price: newPrice };
+        });
+        // Run sequentially in small batches to keep it simple and avoid huge SQL
+        for (const u of updates) {
+          const { id, ...patch } = u;
+          const { error } = await supabase.from('products').update(patch).eq('id', id);
+          if (error) throw error;
+        }
+      }
+      toast.success(`Updated ${ids.length} product${ids.length > 1 ? 's' : ''}`);
+      setBulkOpen(false);
+      setBulkValue('');
+      setSelected(new Set());
+      fetchProducts();
+    } catch (e: any) {
+      toast.error('Bulk update failed', { description: e.message });
+    } finally {
+      setBulkRunning(false);
+    }
+  };
+
+  const bulkDelete = async () => {
+    const ids = Array.from(selected);
+    if (!ids.length) return;
+    if (!confirm(`Delete ${ids.length} product${ids.length > 1 ? 's' : ''}? This cannot be undone.`)) return;
+    const { error } = await supabase.from('products').delete().in('id', ids);
+    if (error) return toast.error('Failed to delete', { description: error.message });
+    toast.success(`Deleted ${ids.length} products`);
+    setSelected(new Set());
+    fetchProducts();
+  };
+
+  const exportCSV = () => {
+    const rows = filtered.map((p) => [
+      p.id,
+      p.name,
+      p.category?.name || '',
+      p.price,
+      p.original_price ?? '',
+      p.stock,
+      p.featured ? 'yes' : 'no',
+      p.best_seller ? 'yes' : 'no',
+      p.rating ?? 0,
+      p.review_count ?? 0,
+      new Date(p.created_at).toISOString(),
+    ]);
+    downloadCSV(
+      `products-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['ID', 'Name', 'Category', 'Price (PKR)', 'Original Price', 'Stock', 'Featured', 'Best Seller', 'Rating', 'Reviews', 'Created'],
+      rows
+    );
+    toast.success(`Exported ${filtered.length} products`);
+  };
 
   return (
     <div className="space-y-4">
@@ -159,11 +259,29 @@ export default function AdminProducts() {
             className="pl-10"
           />
         </div>
-        <Button onClick={openCreate} className="gradient-primary border-0">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Product
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportCSV} disabled={!filtered.length}>
+            <Download className="h-4 w-4 mr-2" /> Export CSV
+          </Button>
+          <Button onClick={openCreate} className="gradient-primary border-0">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Product
+          </Button>
+        </div>
       </div>
+
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl border bg-muted/40">
+          <Layers className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">{selected.size} selected</span>
+          <div className="flex-1" />
+          <Button size="sm" variant="outline" onClick={() => setBulkOpen(true)}>Bulk Edit</Button>
+          <Button size="sm" variant="outline" className="text-destructive" onClick={bulkDelete}>
+            <Trash2 className="h-4 w-4 mr-1" /> Delete
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Clear</Button>
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-3">
@@ -176,6 +294,9 @@ export default function AdminProducts() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox checked={allFilteredSelected} onCheckedChange={toggleAllFiltered} aria-label="Select all" />
+                </TableHead>
                 <TableHead>Product</TableHead>
                 <TableHead className="hidden md:table-cell">Category</TableHead>
                 <TableHead>Price</TableHead>
@@ -185,7 +306,14 @@ export default function AdminProducts() {
             </TableHeader>
             <TableBody>
               {filtered.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow key={product.id} data-state={selected.has(product.id) ? 'selected' : undefined}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selected.has(product.id)}
+                      onCheckedChange={() => toggleOne(product.id)}
+                      aria-label={`Select ${product.name}`}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <img
@@ -222,7 +350,7 @@ export default function AdminProducts() {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     No products found
                   </TableCell>
                 </TableRow>
@@ -231,6 +359,53 @@ export default function AdminProducts() {
           </Table>
         </div>
       )}
+
+      {/* Bulk Edit Dialog */}
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Bulk Edit ({selected.size} products)</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label>Action</Label>
+              <Select value={bulkMode} onValueChange={(v) => setBulkMode(v as BulkMode)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="set_stock">Set stock to…</SelectItem>
+                  <SelectItem value="add_stock">Increase stock by… (use negative to reduce)</SelectItem>
+                  <SelectItem value="set_price">Set price to… (PKR)</SelectItem>
+                  <SelectItem value="adjust_price_pct">Adjust price by…% (e.g. -15 for sale)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>
+                {bulkMode === 'adjust_price_pct' ? 'Percentage' :
+                  bulkMode.includes('stock') ? 'Quantity' : 'Price (PKR)'}
+              </Label>
+              <Input
+                type="number"
+                value={bulkValue}
+                onChange={(e) => setBulkValue(e.target.value)}
+                placeholder={bulkMode === 'adjust_price_pct' ? 'e.g. -15' : '0'}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {bulkMode === 'set_stock' && 'All selected products will have this exact stock count.'}
+                {bulkMode === 'add_stock' && 'Added to each product\'s current stock. Negative reduces stock.'}
+                {bulkMode === 'set_price' && 'All selected products will have this exact price.'}
+                {bulkMode === 'adjust_price_pct' && 'Applies % change per product. -15 makes them 15% cheaper.'}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkOpen(false)}>Cancel</Button>
+            <Button onClick={runBulk} disabled={bulkRunning || bulkValue === ''} className="gradient-primary border-0">
+              {bulkRunning ? 'Applying…' : `Apply to ${selected.size}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Product Form Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
