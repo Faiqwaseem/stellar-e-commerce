@@ -381,7 +381,7 @@ export default function AdminOrders() {
 
       {/* Order Detail Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Order #{selectedOrder?.id.slice(0, 8).toUpperCase()}</DialogTitle></DialogHeader>
           {selectedOrder && (
             <div className="space-y-4">
