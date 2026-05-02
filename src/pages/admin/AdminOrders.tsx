@@ -427,6 +427,11 @@ export default function AdminOrders() {
                 <span>Total</span>
                 <span className="text-primary">{formatPrice(selectedOrder.total_amount)}</span>
               </div>
+              <Separator />
+              <div>
+                <h3 className="font-semibold mb-3 text-sm">Audit Log</h3>
+                <OrderTimeline orderId={selectedOrder.id} showActor />
+              </div>
             </div>
           )}
         </DialogContent>
