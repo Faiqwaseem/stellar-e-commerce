@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Eye, Search, Download, TrendingUp, Package, DollarSign, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, Search, Download, TrendingUp, Package, DollarSign, ShoppingBag, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { OrderTimeline } from '@/components/orders/OrderTimeline';
 import { formatPrice, formatDate } from '@/lib/formatters';
+import { downloadCSV } from '@/lib/csv';
 import { toast } from 'sonner';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
