@@ -56,7 +56,7 @@ const empty = {
 };
 
 export default function AdminCoupons() {
-  const navigate = useNavigate();
+  
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [loading, setLoading] = useState(true);
