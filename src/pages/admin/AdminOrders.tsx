@@ -64,6 +64,10 @@ export default function AdminOrders() {
   const [dateFilter, setDateFilter] = useState('30d');
   const [page, setPage] = useState(1);
 
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<string>('');
+  const [bulkRunning, setBulkRunning] = useState(false);
+
   const fetchOrders = async () => {
     const { data } = await supabase
       .from('orders')
