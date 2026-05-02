@@ -292,10 +292,31 @@ export default function AdminOrders() {
         </Select>
       </div>
 
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl border bg-muted/40">
+          <Layers className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">{selected.size} selected</span>
+          <div className="flex-1" />
+          <Select value={bulkStatus} onValueChange={setBulkStatus}>
+            <SelectTrigger className="w-[170px] h-9"><SelectValue placeholder="Change status to…" /></SelectTrigger>
+            <SelectContent>
+              {STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button size="sm" onClick={applyBulkStatus} disabled={!bulkStatus || bulkRunning} className="gradient-primary border-0">
+            {bulkRunning ? 'Applying…' : 'Apply'}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Clear</Button>
+        </div>
+      )}
+
       <div className="bg-card rounded-xl border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox checked={allPagedSelected} onCheckedChange={togglePage} aria-label="Select page" />
+              </TableHead>
               <TableHead>Order ID</TableHead>
               <TableHead className="hidden md:table-cell">Date</TableHead>
               <TableHead>Amount</TableHead>
@@ -306,7 +327,14 @@ export default function AdminOrders() {
           </TableHeader>
           <TableBody>
             {paged.map((order) => (
-              <TableRow key={order.id}>
+              <TableRow key={order.id} data-state={selected.has(order.id) ? 'selected' : undefined}>
+                <TableCell>
+                  <Checkbox
+                    checked={selected.has(order.id)}
+                    onCheckedChange={() => toggleOne(order.id)}
+                    aria-label={`Select order ${order.id}`}
+                  />
+                </TableCell>
                 <TableCell className="font-medium">#{order.id.slice(0, 8).toUpperCase()}</TableCell>
                 <TableCell className="hidden md:table-cell text-muted-foreground text-sm">{formatDate(order.created_at)}</TableCell>
                 <TableCell className="font-medium">{formatPrice(order.total_amount)}</TableCell>
@@ -332,7 +360,7 @@ export default function AdminOrders() {
             ))}
             {paged.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No transactions match your filters</TableCell>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No transactions match your filters</TableCell>
               </TableRow>
             )}
           </TableBody>
