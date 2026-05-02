@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, BarChart3, ArrowLeft, Palette, FolderTree } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, BarChart3, ArrowLeft, Palette, FolderTree, Users, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -9,6 +9,8 @@ const navItems = [
   { label: 'Products', icon: Package, href: '/admin/products' },
   { label: 'Categories', icon: FolderTree, href: '/admin/categories' },
   { label: 'Orders', icon: ShoppingCart, href: '/admin/orders' },
+  { label: 'Customers', icon: Users, href: '/admin/customers' },
+  { label: 'Coupons', icon: Tag, href: '/admin/coupons' },
   { label: 'Themes', icon: Palette, href: '/admin/themes' },
 ];
 

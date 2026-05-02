@@ -29,6 +29,8 @@ import AdminOverview from "./pages/admin/AdminOverview";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminOrders from "./pages/admin/AdminOrders";
+import AdminCustomers from "./pages/admin/AdminCustomers";
+import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminThemes from "./pages/admin/AdminThemes";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -85,6 +87,8 @@ const App = () => (
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="categories" element={<AdminCategories />} />
                 <Route path="orders" element={<AdminOrders />} />
+                <Route path="customers" element={<AdminCustomers />} />
+                <Route path="coupons" element={<AdminCoupons />} />
                 <Route path="themes" element={<AdminThemes />} />
               </Route>
 

@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Mail, Phone, MapPin, ShoppingBag, User as UserIcon } from 'lucide-react';
+import { Search, Mail, Phone, MapPin, ShoppingBag, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatPrice, formatDate } from '@/lib/formatters';
+import { downloadCSV } from '@/lib/csv';
+import { toast } from 'sonner';
 
 interface Profile {
   id: string;
@@ -86,11 +89,38 @@ export default function AdminCustomers() {
     setOrders((data as OrderRow[]) || []);
   };
 
+  const exportCSV = () => {
+    downloadCSV(
+      `customers-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['ID', 'Name', 'Email', 'Phone', 'City', 'Joined', 'Orders', 'Lifetime Value (PKR)', 'Role'],
+      filtered.map((p) => {
+        const s = stats[p.id] || { order_count: 0, total_spent: 0, is_admin: false };
+        return [
+          p.id,
+          p.full_name || '',
+          p.email,
+          p.phone || '',
+          p.city || '',
+          new Date(p.created_at).toISOString(),
+          s.order_count,
+          s.total_spent.toFixed(2),
+          s.is_admin ? 'admin' : 'customer',
+        ];
+      })
+    );
+    toast.success(`Exported ${filtered.length} customers`);
+  };
+
   return (
     <div className="space-y-4">
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search by name, email, phone..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+      <div className="flex items-center justify-between gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search by name, email, phone..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <Button variant="outline" onClick={exportCSV} disabled={!filtered.length}>
+          <Download className="h-4 w-4 mr-2" /> Export CSV
+        </Button>
       </div>
 
       {loading ? (

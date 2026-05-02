@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Eye, Search, Download, TrendingUp, Package, DollarSign, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, Search, Download, TrendingUp, Package, DollarSign, ShoppingBag, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { OrderTimeline } from '@/components/orders/OrderTimeline';
 import { formatPrice, formatDate } from '@/lib/formatters';
+import { downloadCSV } from '@/lib/csv';
 import { toast } from 'sonner';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -60,6 +63,10 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('30d');
   const [page, setPage] = useState(1);
+
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<string>('');
+  const [bulkRunning, setBulkRunning] = useState(false);
 
   const fetchOrders = async () => {
     const { data } = await supabase
@@ -149,27 +156,51 @@ export default function AdminOrders() {
 
   // --- CSV export ---
   const exportCSV = () => {
-    const headers = ['Order ID', 'Date', 'Amount (PKR)', 'Status', 'Payment Status', 'Payment Method', 'Phone', 'City', 'Address'];
-    const rows = filtered.map(o => [
-      o.id,
-      new Date(o.created_at).toISOString(),
-      o.total_amount,
-      o.status,
-      o.payment_status,
-      o.payment_method || '',
-      o.phone,
-      o.shipping_city,
-      `"${(o.shipping_address || '').replace(/"/g, '""')}"`,
-    ]);
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCSV(
+      `transactions-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['Order ID', 'Date', 'Amount (PKR)', 'Status', 'Payment Status', 'Payment Method', 'Phone', 'City', 'Address', 'Tracking #', 'Carrier'],
+      filtered.map((o) => [
+        o.id,
+        new Date(o.created_at).toISOString(),
+        o.total_amount,
+        o.status,
+        o.payment_status,
+        o.payment_method || '',
+        o.phone,
+        o.shipping_city,
+        o.shipping_address || '',
+        o.tracking_number || '',
+        o.carrier || '',
+      ])
+    );
     toast.success(`Exported ${filtered.length} transactions`);
+  };
+
+  // --- Bulk selection ---
+  const allPagedSelected = paged.length > 0 && paged.every((o) => selected.has(o.id));
+  const togglePage = () => {
+    const next = new Set(selected);
+    if (allPagedSelected) paged.forEach((o) => next.delete(o.id));
+    else paged.forEach((o) => next.add(o.id));
+    setSelected(next);
+  };
+  const toggleOne = (id: string) => {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
+  const applyBulkStatus = async () => {
+    if (!bulkStatus || selected.size === 0) return;
+    if (!confirm(`Change status to "${bulkStatus}" for ${selected.size} order(s)?`)) return;
+    setBulkRunning(true);
+    const ids = Array.from(selected);
+    const { error } = await supabase.from('orders').update({ status: bulkStatus }).in('id', ids);
+    setBulkRunning(false);
+    if (error) return toast.error('Bulk update failed', { description: error.message });
+    toast.success(`Updated ${ids.length} orders to ${bulkStatus}`);
+    setOrders((prev) => prev.map((o) => (selected.has(o.id) ? { ...o, status: bulkStatus } : o)));
+    setSelected(new Set());
+    setBulkStatus('');
   };
 
   if (loading) {
@@ -261,10 +292,31 @@ export default function AdminOrders() {
         </Select>
       </div>
 
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl border bg-muted/40">
+          <Layers className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">{selected.size} selected</span>
+          <div className="flex-1" />
+          <Select value={bulkStatus} onValueChange={setBulkStatus}>
+            <SelectTrigger className="w-[170px] h-9"><SelectValue placeholder="Change status to…" /></SelectTrigger>
+            <SelectContent>
+              {STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button size="sm" onClick={applyBulkStatus} disabled={!bulkStatus || bulkRunning} className="gradient-primary border-0">
+            {bulkRunning ? 'Applying…' : 'Apply'}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Clear</Button>
+        </div>
+      )}
+
       <div className="bg-card rounded-xl border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox checked={allPagedSelected} onCheckedChange={togglePage} aria-label="Select page" />
+              </TableHead>
               <TableHead>Order ID</TableHead>
               <TableHead className="hidden md:table-cell">Date</TableHead>
               <TableHead>Amount</TableHead>
@@ -275,7 +327,14 @@ export default function AdminOrders() {
           </TableHeader>
           <TableBody>
             {paged.map((order) => (
-              <TableRow key={order.id}>
+              <TableRow key={order.id} data-state={selected.has(order.id) ? 'selected' : undefined}>
+                <TableCell>
+                  <Checkbox
+                    checked={selected.has(order.id)}
+                    onCheckedChange={() => toggleOne(order.id)}
+                    aria-label={`Select order ${order.id}`}
+                  />
+                </TableCell>
                 <TableCell className="font-medium">#{order.id.slice(0, 8).toUpperCase()}</TableCell>
                 <TableCell className="hidden md:table-cell text-muted-foreground text-sm">{formatDate(order.created_at)}</TableCell>
                 <TableCell className="font-medium">{formatPrice(order.total_amount)}</TableCell>
@@ -301,7 +360,7 @@ export default function AdminOrders() {
             ))}
             {paged.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No transactions match your filters</TableCell>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No transactions match your filters</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -322,7 +381,7 @@ export default function AdminOrders() {
 
       {/* Order Detail Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Order #{selectedOrder?.id.slice(0, 8).toUpperCase()}</DialogTitle></DialogHeader>
           {selectedOrder && (
             <div className="space-y-4">
@@ -367,6 +426,11 @@ export default function AdminOrders() {
               <div className="flex justify-between font-semibold">
                 <span>Total</span>
                 <span className="text-primary">{formatPrice(selectedOrder.total_amount)}</span>
+              </div>
+              <Separator />
+              <div>
+                <h3 className="font-semibold mb-3 text-sm">Audit Log</h3>
+                <OrderTimeline orderId={selectedOrder.id} showActor />
               </div>
             </div>
           )}
