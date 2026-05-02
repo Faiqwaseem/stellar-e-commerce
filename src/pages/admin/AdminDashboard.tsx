@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, BarChart3, ArrowLeft, Palette } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, BarChart3, ArrowLeft, Palette, FolderTree } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
   { label: 'Overview', icon: BarChart3, href: '/admin' },
   { label: 'Products', icon: Package, href: '/admin/products' },
+  { label: 'Categories', icon: FolderTree, href: '/admin/categories' },
   { label: 'Orders', icon: ShoppingCart, href: '/admin/orders' },
   { label: 'Themes', icon: Palette, href: '/admin/themes' },
 ];
