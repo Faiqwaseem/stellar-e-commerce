@@ -27,6 +27,7 @@ import OrderDetail from "./pages/OrderDetail";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminProducts from "./pages/admin/AdminProducts";
+import AdminCategories from "./pages/admin/AdminCategories";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminThemes from "./pages/admin/AdminThemes";
 import About from "./pages/About";
