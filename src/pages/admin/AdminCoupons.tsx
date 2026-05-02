@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// no extra imports
 import { Plus, Pencil, Trash2, Search, Tag, BarChart3, Download, TrendingDown, Users, Percent } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
