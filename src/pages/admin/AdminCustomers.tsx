@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Mail, Phone, MapPin, ShoppingBag, User as UserIcon } from 'lucide-react';
+import { Search, Mail, Phone, MapPin, ShoppingBag, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatPrice, formatDate } from '@/lib/formatters';
+import { downloadCSV } from '@/lib/csv';
+import { toast } from 'sonner';
 
 interface Profile {
   id: string;
