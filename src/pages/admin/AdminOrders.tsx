@@ -156,27 +156,51 @@ export default function AdminOrders() {
 
   // --- CSV export ---
   const exportCSV = () => {
-    const headers = ['Order ID', 'Date', 'Amount (PKR)', 'Status', 'Payment Status', 'Payment Method', 'Phone', 'City', 'Address'];
-    const rows = filtered.map(o => [
-      o.id,
-      new Date(o.created_at).toISOString(),
-      o.total_amount,
-      o.status,
-      o.payment_status,
-      o.payment_method || '',
-      o.phone,
-      o.shipping_city,
-      `"${(o.shipping_address || '').replace(/"/g, '""')}"`,
-    ]);
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCSV(
+      `transactions-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['Order ID', 'Date', 'Amount (PKR)', 'Status', 'Payment Status', 'Payment Method', 'Phone', 'City', 'Address', 'Tracking #', 'Carrier'],
+      filtered.map((o) => [
+        o.id,
+        new Date(o.created_at).toISOString(),
+        o.total_amount,
+        o.status,
+        o.payment_status,
+        o.payment_method || '',
+        o.phone,
+        o.shipping_city,
+        o.shipping_address || '',
+        o.tracking_number || '',
+        o.carrier || '',
+      ])
+    );
     toast.success(`Exported ${filtered.length} transactions`);
+  };
+
+  // --- Bulk selection ---
+  const allPagedSelected = paged.length > 0 && paged.every((o) => selected.has(o.id));
+  const togglePage = () => {
+    const next = new Set(selected);
+    if (allPagedSelected) paged.forEach((o) => next.delete(o.id));
+    else paged.forEach((o) => next.add(o.id));
+    setSelected(next);
+  };
+  const toggleOne = (id: string) => {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
+  const applyBulkStatus = async () => {
+    if (!bulkStatus || selected.size === 0) return;
+    if (!confirm(`Change status to "${bulkStatus}" for ${selected.size} order(s)?`)) return;
+    setBulkRunning(true);
+    const ids = Array.from(selected);
+    const { error } = await supabase.from('orders').update({ status: bulkStatus }).in('id', ids);
+    setBulkRunning(false);
+    if (error) return toast.error('Bulk update failed', { description: error.message });
+    toast.success(`Updated ${ids.length} orders to ${bulkStatus}`);
+    setOrders((prev) => prev.map((o) => (selected.has(o.id) ? { ...o, status: bulkStatus } : o)));
+    setSelected(new Set());
+    setBulkStatus('');
   };
 
   if (loading) {
