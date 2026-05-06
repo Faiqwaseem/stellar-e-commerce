@@ -42,6 +42,14 @@ interface Redemption {
   created_at: string;
 }
 
+interface ProfileLite {
+  id: string;
+  email: string;
+  full_name: string | null;
+}
+
+const PAGE_SIZE = 10;
+
 const empty = {
   code: '',
   description: '',
