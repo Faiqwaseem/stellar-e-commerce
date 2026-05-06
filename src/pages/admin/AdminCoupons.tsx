@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 // no extra imports
-import { Plus, Pencil, Trash2, Search, Tag, BarChart3, Download, TrendingDown, Users, Percent } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Tag, BarChart3, Download, TrendingDown, Users, Percent, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
