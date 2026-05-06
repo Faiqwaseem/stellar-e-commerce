@@ -29,7 +29,7 @@ export default function Checkout() {
     phone: '',
     address: '',
     city: '',
-    paymentMethod: 'cod' as const,
+    paymentMethod: 'cod' as 'cod' | 'jazzcash',
   });
   const [loading, setLoading] = useState(false);
   const [addressBookOpen, setAddressBookOpen] = useState(false);
