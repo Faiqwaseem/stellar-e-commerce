@@ -72,7 +72,7 @@ export const checkoutSchema = z.object({
   phone: phoneSchema,
   address: z.string().trim().min(5, 'Address required').max(200),
   city: z.string().trim().min(2, 'City required').max(80),
-  paymentMethod: z.enum(['cod']),
+  paymentMethod: z.enum(['cod', 'jazzcash']),
 });
 
 // ===== Review =====

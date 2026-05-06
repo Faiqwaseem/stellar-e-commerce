@@ -29,7 +29,7 @@ export default function Checkout() {
     phone: '',
     address: '',
     city: '',
-    paymentMethod: 'cod' as const,
+    paymentMethod: 'cod' as 'cod' | 'jazzcash',
   });
   const [loading, setLoading] = useState(false);
   const [addressBookOpen, setAddressBookOpen] = useState(false);
@@ -118,8 +118,13 @@ export default function Checkout() {
 
       clearCart();
       clearCoupon();
-      toast.success('Order placed successfully!');
-      navigate(`/order-success?orderId=${orderId}`);
+      if (parsed.data.paymentMethod === 'jazzcash') {
+        toast.success('Order created — redirecting to JazzCash…');
+        navigate(`/mock-jazzcash?orderId=${orderId}&amount=${total}`);
+      } else {
+        toast.success('Order placed successfully!');
+        navigate(`/order-success?orderId=${orderId}`);
+      }
     } catch (error: any) {
       toast.error('Failed to place order', { description: error.message });
     } finally {
@@ -207,6 +212,16 @@ export default function Checkout() {
                     <Label htmlFor="cod" className="flex-1 cursor-pointer">
                       <span className="font-medium">Cash on Delivery</span>
                       <p className="text-sm text-muted-foreground">Pay when you receive your order</p>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-muted/50">
+                    <RadioGroupItem value="jazzcash" id="jazzcash" />
+                    <Label htmlFor="jazzcash" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">JazzCash</span>
+                        <span className="text-[10px] uppercase tracking-wide bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">Demo</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Pay online via JazzCash wallet (sandbox)</p>
                     </Label>
                   </div>
                 </RadioGroup>
