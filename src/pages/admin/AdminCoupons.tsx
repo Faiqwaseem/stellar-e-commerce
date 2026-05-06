@@ -156,19 +156,23 @@ export default function AdminCoupons() {
   const pagedRedemptions = filteredRedemptions.slice((redPage - 1) * PAGE_SIZE, redPage * PAGE_SIZE);
 
   const exportRedemptions = () => {
-    const codeMap = new Map(coupons.map((c) => [c.id, c.code]));
+    const rows = filteredRedemptions.length ? filteredRedemptions : redemptions;
     downloadCSV(
       `coupon-redemptions-${new Date().toISOString().slice(0, 10)}.csv`,
-      ['Date', 'Code', 'User ID', 'Order ID', 'Discount (PKR)'],
-      redemptions.map((r) => [
-        new Date(r.created_at).toISOString(),
-        codeMap.get(r.coupon_id) || r.coupon_id,
-        r.user_id,
-        r.order_id || '',
-        Number(r.discount_amount).toFixed(2),
-      ])
+      ['Date', 'Code', 'Customer', 'Email', 'Order ID', 'Discount (PKR)'],
+      rows.map((r) => {
+        const p = profiles[r.user_id];
+        return [
+          new Date(r.created_at).toISOString(),
+          codeMap.get(r.coupon_id) || r.coupon_id,
+          p?.full_name || '',
+          p?.email || r.user_id,
+          r.order_id || '',
+          Number(r.discount_amount).toFixed(2),
+        ];
+      })
     );
-    toast.success(`Exported ${redemptions.length} redemptions`);
+    toast.success(`Exported ${rows.length} redemptions`);
   };
 
   const openCreate = () => { setEditing(null); setForm(empty); setOpen(true); };
