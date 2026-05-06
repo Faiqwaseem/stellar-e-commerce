@@ -135,6 +135,26 @@ export default function AdminCoupons() {
     };
   }, [coupons, redemptions]);
 
+  const codeMap = useMemo(() => new Map(coupons.map((c) => [c.id, c.code])), [coupons]);
+
+  const filteredRedemptions = useMemo(() => {
+    const q = redSearch.trim().toLowerCase();
+    if (!q) return redemptions;
+    return redemptions.filter((r) => {
+      const code = (codeMap.get(r.coupon_id) || '').toLowerCase();
+      const p = profiles[r.user_id];
+      const name = (p?.full_name || '').toLowerCase();
+      const email = (p?.email || '').toLowerCase();
+      const order = (r.order_id || '').toLowerCase();
+      return code.includes(q) || name.includes(q) || email.includes(q) || order.includes(q);
+    });
+  }, [redemptions, redSearch, codeMap, profiles]);
+
+  useEffect(() => { setRedPage(1); }, [redSearch]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRedemptions.length / PAGE_SIZE));
+  const pagedRedemptions = filteredRedemptions.slice((redPage - 1) * PAGE_SIZE, redPage * PAGE_SIZE);
+
   const exportRedemptions = () => {
     const codeMap = new Map(coupons.map((c) => [c.id, c.code]));
     downloadCSV(
