@@ -224,6 +224,7 @@ export default function Checkout() {
                       <p className="text-sm text-muted-foreground">Pay online via JazzCash wallet (sandbox)</p>
                     </Label>
                   </div>
+                </RadioGroup>
               </div>
             </div>
 
