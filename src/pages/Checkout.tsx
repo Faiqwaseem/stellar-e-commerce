@@ -214,7 +214,16 @@ export default function Checkout() {
                       <p className="text-sm text-muted-foreground">Pay when you receive your order</p>
                     </Label>
                   </div>
-                </RadioGroup>
+                  <div className="flex items-center space-x-3 border rounded-lg p-4 cursor-pointer hover:bg-muted/50">
+                    <RadioGroupItem value="jazzcash" id="jazzcash" />
+                    <Label htmlFor="jazzcash" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">JazzCash</span>
+                        <span className="text-[10px] uppercase tracking-wide bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">Demo</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Pay online via JazzCash wallet (sandbox)</p>
+                    </Label>
+                  </div>
               </div>
             </div>
 
