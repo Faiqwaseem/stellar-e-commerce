@@ -67,11 +67,14 @@ export default function AdminCoupons() {
   
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Coupon | null>(null);
   const [form, setForm] = useState(empty);
+  const [redSearch, setRedSearch] = useState('');
+  const [redPage, setRedPage] = useState(1);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -80,7 +83,17 @@ export default function AdminCoupons() {
       supabase.from('coupon_redemptions').select('*').order('created_at', { ascending: false }),
     ]);
     setCoupons((c as Coupon[]) || []);
-    setRedemptions((r as Redemption[]) || []);
+    const reds = (r as Redemption[]) || [];
+    setRedemptions(reds);
+    const userIds = Array.from(new Set(reds.map((x) => x.user_id)));
+    if (userIds.length) {
+      const { data: p } = await supabase.from('profiles').select('id, email, full_name').in('id', userIds);
+      const map: Record<string, ProfileLite> = {};
+      (p || []).forEach((x: any) => { map[x.id] = x; });
+      setProfiles(map);
+    } else {
+      setProfiles({});
+    }
     setLoading(false);
   };
 
