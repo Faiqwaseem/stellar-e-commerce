@@ -348,6 +348,95 @@ export default function AdminCoupons() {
               )}
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
+              <div>
+                <CardTitle className="text-base">Redemption History</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {filteredRedemptions.length} of {redemptions.length} redemptions
+                </p>
+              </div>
+              <div className="relative w-full sm:w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search code, customer, order…"
+                  value={redSearch}
+                  onChange={(e) => setRedSearch(e.target.value)}
+                  className="pl-9 h-9"
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {filteredRedemptions.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  {redemptions.length === 0 ? 'No redemptions yet.' : 'No matches for your search.'}
+                </p>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Code</TableHead>
+                          <TableHead>Customer</TableHead>
+                          <TableHead>Order</TableHead>
+                          <TableHead className="text-right">Discount</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pagedRedemptions.map((r) => {
+                          const p = profiles[r.user_id];
+                          return (
+                            <TableRow key={r.id}>
+                              <TableCell className="text-sm whitespace-nowrap">{formatDate(r.created_at)}</TableCell>
+                              <TableCell className="font-mono text-sm">{codeMap.get(r.coupon_id) || '—'}</TableCell>
+                              <TableCell>
+                                <div className="text-sm font-medium">{p?.full_name || 'Unknown'}</div>
+                                <div className="text-xs text-muted-foreground">{p?.email || r.user_id.slice(0, 8)}</div>
+                              </TableCell>
+                              <TableCell className="font-mono text-xs text-muted-foreground">
+                                {r.order_id ? r.order_id.slice(0, 8) : '—'}
+                              </TableCell>
+                              <TableCell className="text-right font-medium text-destructive">
+                                {formatPrice(Number(r.discount_amount))}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-4">
+                      <p className="text-xs text-muted-foreground">
+                        Page {redPage} of {totalPages}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setRedPage((p) => Math.max(1, p - 1))}
+                          disabled={redPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setRedPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={redPage === totalPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
