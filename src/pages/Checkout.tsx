@@ -118,8 +118,13 @@ export default function Checkout() {
 
       clearCart();
       clearCoupon();
-      toast.success('Order placed successfully!');
-      navigate(`/order-success?orderId=${orderId}`);
+      if (parsed.data.paymentMethod === 'jazzcash') {
+        toast.success('Order created — redirecting to JazzCash…');
+        navigate(`/mock-jazzcash?orderId=${orderId}&amount=${total}`);
+      } else {
+        toast.success('Order placed successfully!');
+        navigate(`/order-success?orderId=${orderId}`);
+      }
     } catch (error: any) {
       toast.error('Failed to place order', { description: error.message });
     } finally {
