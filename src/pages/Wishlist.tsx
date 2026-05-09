@@ -90,14 +90,36 @@ export default function Wishlist() {
       </div>
 
       <div className="container py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
           <h1 className="text-2xl md:text-3xl font-display font-bold">
             My Wishlist ({items.length} items)
           </h1>
-          <Button variant="outline" onClick={clearWishlist}>
-            Clear All
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleShare} disabled={sharing}>
+              <Share2 className="h-4 w-4 mr-2" />
+              {t('shareWishlist')}
+            </Button>
+            <Button variant="outline" onClick={clearWishlist}>
+              Clear All
+            </Button>
+          </div>
         </div>
+
+        {shareUrl && (
+          <div className="mb-6 flex flex-col sm:flex-row gap-2 rounded-xl border bg-muted/40 p-3">
+            <Input value={shareUrl} readOnly className="flex-1 bg-background" />
+            <Button
+              variant="secondary"
+              onClick={() => {
+                navigator.clipboard.writeText(shareUrl);
+                toast.success('Copied!');
+              }}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              {t('copyLink')}
+            </Button>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {items.map((product, index) => (
