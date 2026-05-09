@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/hooks/useAuth";
+import { I18nProvider } from "@/lib/i18n";
 import { MainLayout } from "@/components/layout";
 
 // Pages
@@ -25,6 +26,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import OrderDetail from "./pages/OrderDetail";
 import MockJazzCash from "./pages/MockJazzCash";
+import SharedWishlist from "./pages/SharedWishlist";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminProducts from "./pages/admin/AdminProducts";
@@ -48,6 +50,7 @@ const App = () => (
   <HelmetProvider>
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <I18nProvider>
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
@@ -68,6 +71,7 @@ const App = () => (
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/wishlist/share/:token" element={<SharedWishlist />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/order-success" element={<OrderSuccess />} />
                 <Route path="/orders" element={<Orders />} />
@@ -100,6 +104,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
+      </I18nProvider>
     </ThemeProvider>
   </QueryClientProvider>
   </HelmetProvider>

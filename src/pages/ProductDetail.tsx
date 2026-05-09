@@ -24,6 +24,9 @@ import { formatPrice, calculateDiscount } from '@/lib/formatters';
 import { useCartStore } from '@/stores/cartStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
 import { ReviewForm } from '@/components/products/ReviewForm';
+import { ProductQA } from '@/components/products/ProductQA';
+import { RecentlyViewed } from '@/components/products/RecentlyViewed';
+import { useRecentlyViewedStore } from '@/stores/recentlyViewedStore';
 import { toast } from 'sonner';
 import { SEO } from '@/components/SEO';
 
@@ -38,6 +41,7 @@ export default function ProductDetail() {
 
   const { addItem } = useCartStore();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
+  const addRecentlyViewed = useRecentlyViewedStore((s) => s.add);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -54,17 +58,34 @@ export default function ProductDetail() {
         setProduct(data as Product);
         setSelectedImage(0);
         setQuantity(1);
+        addRecentlyViewed(data as Product);
 
-        // Fetch related products
+        // Smarter related: same category by rating, fill from similar price band
         if (data.category_id) {
-          const { data: related } = await supabase
+          const { data: sameCat } = await supabase
             .from('products')
             .select('*, category:categories(*)')
             .eq('category_id', data.category_id)
             .neq('id', id)
-            .limit(4);
-
-          if (related) setRelatedProducts(related as Product[]);
+            .order('rating', { ascending: false })
+            .limit(8);
+          const combined: Product[] = ((sameCat as Product[]) || []).slice();
+          if (combined.length < 4) {
+            const min = Number(data.price) * 0.6;
+            const max = Number(data.price) * 1.6;
+            const { data: priceBand } = await supabase
+              .from('products')
+              .select('*, category:categories(*)')
+              .gte('price', min)
+              .lte('price', max)
+              .neq('id', id)
+              .limit(8);
+            const seen = new Set(combined.map((p) => p.id));
+            for (const p of (priceBand as Product[]) || []) {
+              if (!seen.has(p.id)) combined.push(p);
+            }
+          }
+          setRelatedProducts(combined.slice(0, 4));
         }
 
         // Fetch reviews
@@ -410,6 +431,7 @@ export default function ProductDetail() {
           <Tabs defaultValue="reviews">
             <TabsList>
               <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
+              <TabsTrigger value="qa">Q&amp;A</TabsTrigger>
               <TabsTrigger value="related">Related Products</TabsTrigger>
             </TabsList>
             <TabsContent value="reviews" className="mt-6">
@@ -452,6 +474,9 @@ export default function ProductDetail() {
                 <ReviewForm productId={product.id} onReviewAdded={() => fetchReviews(product.id)} />
               </div>
             </TabsContent>
+            <TabsContent value="qa" className="mt-6">
+              <ProductQA productId={product.id} />
+            </TabsContent>
             <TabsContent value="related" className="mt-6">
               {relatedProducts.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -467,6 +492,8 @@ export default function ProductDetail() {
             </TabsContent>
           </Tabs>
         </div>
+
+        <RecentlyViewed excludeId={product.id} />
       </div>
     </div>
   );
