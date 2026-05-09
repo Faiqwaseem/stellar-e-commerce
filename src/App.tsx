@@ -24,6 +24,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import OrderDetail from "./pages/OrderDetail";
+import MockJazzCash from "./pages/MockJazzCash";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminProducts from "./pages/admin/AdminProducts";
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/mock-jazzcash" element={<MockJazzCash />} />
 
               {/* Main Layout Routes */}
               <Route element={<MainLayout />}>

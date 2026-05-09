@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 // no extra imports
-import { Plus, Pencil, Trash2, Search, Tag, BarChart3, Download, TrendingDown, Users, Percent } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Tag, BarChart3, Download, TrendingDown, Users, Percent, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +42,14 @@ interface Redemption {
   created_at: string;
 }
 
+interface ProfileLite {
+  id: string;
+  email: string;
+  full_name: string | null;
+}
+
+const PAGE_SIZE = 10;
+
 const empty = {
   code: '',
   description: '',
@@ -59,11 +67,14 @@ export default function AdminCoupons() {
   
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Coupon | null>(null);
   const [form, setForm] = useState(empty);
+  const [redSearch, setRedSearch] = useState('');
+  const [redPage, setRedPage] = useState(1);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -72,7 +83,17 @@ export default function AdminCoupons() {
       supabase.from('coupon_redemptions').select('*').order('created_at', { ascending: false }),
     ]);
     setCoupons((c as Coupon[]) || []);
-    setRedemptions((r as Redemption[]) || []);
+    const reds = (r as Redemption[]) || [];
+    setRedemptions(reds);
+    const userIds = Array.from(new Set(reds.map((x) => x.user_id)));
+    if (userIds.length) {
+      const { data: p } = await supabase.from('profiles').select('id, email, full_name').in('id', userIds);
+      const map: Record<string, ProfileLite> = {};
+      (p || []).forEach((x: any) => { map[x.id] = x; });
+      setProfiles(map);
+    } else {
+      setProfiles({});
+    }
     setLoading(false);
   };
 
@@ -114,20 +135,44 @@ export default function AdminCoupons() {
     };
   }, [coupons, redemptions]);
 
+  const codeMap = useMemo(() => new Map(coupons.map((c) => [c.id, c.code])), [coupons]);
+
+  const filteredRedemptions = useMemo(() => {
+    const q = redSearch.trim().toLowerCase();
+    if (!q) return redemptions;
+    return redemptions.filter((r) => {
+      const code = (codeMap.get(r.coupon_id) || '').toLowerCase();
+      const p = profiles[r.user_id];
+      const name = (p?.full_name || '').toLowerCase();
+      const email = (p?.email || '').toLowerCase();
+      const order = (r.order_id || '').toLowerCase();
+      return code.includes(q) || name.includes(q) || email.includes(q) || order.includes(q);
+    });
+  }, [redemptions, redSearch, codeMap, profiles]);
+
+  useEffect(() => { setRedPage(1); }, [redSearch]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRedemptions.length / PAGE_SIZE));
+  const pagedRedemptions = filteredRedemptions.slice((redPage - 1) * PAGE_SIZE, redPage * PAGE_SIZE);
+
   const exportRedemptions = () => {
-    const codeMap = new Map(coupons.map((c) => [c.id, c.code]));
+    const rows = filteredRedemptions.length ? filteredRedemptions : redemptions;
     downloadCSV(
       `coupon-redemptions-${new Date().toISOString().slice(0, 10)}.csv`,
-      ['Date', 'Code', 'User ID', 'Order ID', 'Discount (PKR)'],
-      redemptions.map((r) => [
-        new Date(r.created_at).toISOString(),
-        codeMap.get(r.coupon_id) || r.coupon_id,
-        r.user_id,
-        r.order_id || '',
-        Number(r.discount_amount).toFixed(2),
-      ])
+      ['Date', 'Code', 'Customer', 'Email', 'Order ID', 'Discount (PKR)'],
+      rows.map((r) => {
+        const p = profiles[r.user_id];
+        return [
+          new Date(r.created_at).toISOString(),
+          codeMap.get(r.coupon_id) || r.coupon_id,
+          p?.full_name || '',
+          p?.email || r.user_id,
+          r.order_id || '',
+          Number(r.discount_amount).toFixed(2),
+        ];
+      })
     );
-    toast.success(`Exported ${redemptions.length} redemptions`);
+    toast.success(`Exported ${rows.length} redemptions`);
   };
 
   const openCreate = () => { setEditing(null); setForm(empty); setOpen(true); };
@@ -300,6 +345,95 @@ export default function AdminCoupons() {
                     ))}
                   </TableBody>
                 </Table>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0">
+              <div>
+                <CardTitle className="text-base">Redemption History</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {filteredRedemptions.length} of {redemptions.length} redemptions
+                </p>
+              </div>
+              <div className="relative w-full sm:w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search code, customer, order…"
+                  value={redSearch}
+                  onChange={(e) => setRedSearch(e.target.value)}
+                  className="pl-9 h-9"
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {filteredRedemptions.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  {redemptions.length === 0 ? 'No redemptions yet.' : 'No matches for your search.'}
+                </p>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Code</TableHead>
+                          <TableHead>Customer</TableHead>
+                          <TableHead>Order</TableHead>
+                          <TableHead className="text-right">Discount</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pagedRedemptions.map((r) => {
+                          const p = profiles[r.user_id];
+                          return (
+                            <TableRow key={r.id}>
+                              <TableCell className="text-sm whitespace-nowrap">{formatDate(r.created_at)}</TableCell>
+                              <TableCell className="font-mono text-sm">{codeMap.get(r.coupon_id) || '—'}</TableCell>
+                              <TableCell>
+                                <div className="text-sm font-medium">{p?.full_name || 'Unknown'}</div>
+                                <div className="text-xs text-muted-foreground">{p?.email || r.user_id.slice(0, 8)}</div>
+                              </TableCell>
+                              <TableCell className="font-mono text-xs text-muted-foreground">
+                                {r.order_id ? r.order_id.slice(0, 8) : '—'}
+                              </TableCell>
+                              <TableCell className="text-right font-medium text-destructive">
+                                {formatPrice(Number(r.discount_amount))}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-4">
+                      <p className="text-xs text-muted-foreground">
+                        Page {redPage} of {totalPages}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setRedPage((p) => Math.max(1, p - 1))}
+                          disabled={redPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setRedPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={redPage === totalPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
