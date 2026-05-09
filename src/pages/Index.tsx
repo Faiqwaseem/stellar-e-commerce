@@ -10,6 +10,7 @@ import {
   FeaturesBanner,
   PromoBanners,
 } from '@/components/home';
+import { RecentlyViewed } from '@/components/products/RecentlyViewed';
 
 export default function Index() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -76,6 +77,9 @@ export default function Index() {
       <FeaturedProducts products={featuredProducts} loading={loading} />
       <PromoBanners />
       <BestSellers products={bestSellers} loading={loading} />
+      <div className="container pb-12">
+        <RecentlyViewed />
+      </div>
     </>
   );
 }
