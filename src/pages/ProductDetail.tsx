@@ -24,6 +24,9 @@ import { formatPrice, calculateDiscount } from '@/lib/formatters';
 import { useCartStore } from '@/stores/cartStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
 import { ReviewForm } from '@/components/products/ReviewForm';
+import { ProductQA } from '@/components/products/ProductQA';
+import { RecentlyViewed } from '@/components/products/RecentlyViewed';
+import { useRecentlyViewedStore } from '@/stores/recentlyViewedStore';
 import { toast } from 'sonner';
 import { SEO } from '@/components/SEO';
 
@@ -38,6 +41,7 @@ export default function ProductDetail() {
 
   const { addItem } = useCartStore();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
+  const addRecentlyViewed = useRecentlyViewedStore((s) => s.add);
 
   useEffect(() => {
     async function fetchProduct() {
