@@ -431,6 +431,7 @@ export default function ProductDetail() {
           <Tabs defaultValue="reviews">
             <TabsList>
               <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
+              <TabsTrigger value="qa">Q&amp;A</TabsTrigger>
               <TabsTrigger value="related">Related Products</TabsTrigger>
             </TabsList>
             <TabsContent value="reviews" className="mt-6">
@@ -473,6 +474,9 @@ export default function ProductDetail() {
                 <ReviewForm productId={product.id} onReviewAdded={() => fetchReviews(product.id)} />
               </div>
             </TabsContent>
+            <TabsContent value="qa" className="mt-6">
+              <ProductQA productId={product.id} />
+            </TabsContent>
             <TabsContent value="related" className="mt-6">
               {relatedProducts.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -488,6 +492,8 @@ export default function ProductDetail() {
             </TabsContent>
           </Tabs>
         </div>
+
+        <RecentlyViewed excludeId={product.id} />
       </div>
     </div>
   );
