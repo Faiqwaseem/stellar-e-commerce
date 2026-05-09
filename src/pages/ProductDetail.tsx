@@ -58,17 +58,34 @@ export default function ProductDetail() {
         setProduct(data as Product);
         setSelectedImage(0);
         setQuantity(1);
+        addRecentlyViewed(data as Product);
 
-        // Fetch related products
+        // Smarter related: same category by rating, fill from similar price band
         if (data.category_id) {
-          const { data: related } = await supabase
+          const { data: sameCat } = await supabase
             .from('products')
             .select('*, category:categories(*)')
             .eq('category_id', data.category_id)
             .neq('id', id)
-            .limit(4);
-
-          if (related) setRelatedProducts(related as Product[]);
+            .order('rating', { ascending: false })
+            .limit(8);
+          const combined: Product[] = ((sameCat as Product[]) || []).slice();
+          if (combined.length < 4) {
+            const min = Number(data.price) * 0.6;
+            const max = Number(data.price) * 1.6;
+            const { data: priceBand } = await supabase
+              .from('products')
+              .select('*, category:categories(*)')
+              .gte('price', min)
+              .lte('price', max)
+              .neq('id', id)
+              .limit(8);
+            const seen = new Set(combined.map((p) => p.id));
+            for (const p of (priceBand as Product[]) || []) {
+              if (!seen.has(p.id)) combined.push(p);
+            }
+          }
+          setRelatedProducts(combined.slice(0, 4));
         }
 
         // Fetch reviews
