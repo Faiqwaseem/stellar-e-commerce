@@ -23,15 +23,15 @@ export default function AdminDashboard() {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading...</div>;
   }
 
-  // if (!user || !isAdmin) {
-  //   return (
-  //     <div className="min-h-[60vh] flex flex-col items-center justify-center">
-  //       <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-  //       <p className="text-muted-foreground mb-4">You need admin privileges to access this page.</p>
-  //       <Link to="/"><Button>Go Home</Button></Link>
-  //     </div>
-  //   );
-  // }
+  if (!user || !isAdmin) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+        <p className="text-muted-foreground mb-4">You need admin privileges to access this page.</p>
+        <Link to="/"><Button>Go Home</Button></Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
