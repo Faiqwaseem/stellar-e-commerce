@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCartStore } from '@/stores/cartStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { ThemeToggle } from './ThemeToggle';
 
 const categories = [

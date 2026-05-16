@@ -5,7 +5,7 @@ import { Eye, EyeOff, Mail, Lock, User, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { registerSchema, formatZodError } from '@/lib/validation';
 import { toast } from 'sonner';
 

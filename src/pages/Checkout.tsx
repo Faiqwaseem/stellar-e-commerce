@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useCartStore } from '@/stores/cartStore';
 import { useCouponStore } from '@/stores/couponStore';
 import { CouponInput } from '@/components/checkout/CouponInput';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/formatters';
 import { checkoutSchema, formatZodError } from '@/lib/validation';

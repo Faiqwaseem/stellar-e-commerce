@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { profileSchema, formatZodError } from '@/lib/validation';
 import { AddressBook } from '@/components/profile/AddressBook';
 import { toast } from 'sonner';
