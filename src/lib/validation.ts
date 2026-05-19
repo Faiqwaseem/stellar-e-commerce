@@ -20,7 +20,7 @@ export const loginSchema = z.object({
 
 export const registerSchema = z
   .object({
-    fullName: z.string().trim().min(2, 'Name must be at least 2 characters').max(80),
+    username: z.string().trim().min(2, 'Name must be at least 2 characters').max(80),
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: z.string(),
@@ -52,7 +52,7 @@ export const phoneSchema = z
 
 export const addressSchema = z.object({
   label: z.string().trim().min(1, 'Label required').max(30),
-  full_name: z.string().trim().min(2, 'Name required').max(80),
+  username: z.string().trim().min(2, 'Name required').max(80),
   phone: phoneSchema,
   address: z.string().trim().min(5, 'Address too short').max(200),
   city: z.string().trim().min(2, 'City required').max(80),
@@ -60,7 +60,7 @@ export const addressSchema = z.object({
 });
 
 export const profileSchema = z.object({
-  full_name: z.string().trim().min(2).max(80),
+  username: z.string().trim().min(2).max(80),
   phone: z.union([z.literal(''), phoneSchema]),
   address: z.union([z.literal(''), z.string().trim().max(200)]),
   city: z.union([z.literal(''), z.string().trim().max(80)]),
@@ -68,7 +68,7 @@ export const profileSchema = z.object({
 
 // ===== Checkout =====
 export const checkoutSchema = z.object({
-  fullName: z.string().trim().min(2, 'Name required').max(80),
+  username: z.string().trim().min(2, 'Name required').max(80),
   phone: phoneSchema,
   address: z.string().trim().min(5, 'Address required').max(200),
   city: z.string().trim().min(2, 'City required').max(80),

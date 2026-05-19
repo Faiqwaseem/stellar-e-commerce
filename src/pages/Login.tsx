@@ -1,38 +1,57 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useAuth } from '@/hooks/useAuth';
-import { loginSchema, formatZodError } from '@/lib/validation';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+
+import { Eye, EyeOff, Mail, Lock, ShoppingCart } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+import { useAuth } from "@/context/AuthContext";
+
+import { loginSchema, formatZodError } from "@/lib/validation";
+
+import { toast } from "sonner";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
-  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const parsed = loginSchema.safeParse({ email, password });
-    if (!parsed.success) {
-      toast.error(formatZodError(parsed.error));
-      return;
+  const navigate = useNavigate();
+  const { login, loading } = useAuth();
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    try {
+      const formData = {
+        email,
+        password,
+      };
+      const validatedData = loginSchema.parse(formData);
+
+      await login(validatedData);
+
+      toast.success("Login successful");
+
+      navigate("/");
+    } catch (error) {
+      if (error?.issues) {
+        toast.error(formatZodError(error));
+
+        return;
+      }
+
+      /*
+      |--------------------------------------------------------------------------
+      | API ERROR
+      |--------------------------------------------------------------------------
+      */
+
+      toast.error(error?.response?.data?.message || "Something went wrong");
     }
-    setLoading(true);
-    const { error } = await signIn(parsed.data.email, parsed.data.password);
-    if (error) {
-      toast.error('Login failed', { description: error.message });
-    } else {
-      toast.success('Welcome back!');
-      navigate('/');
-    }
-    setLoading(false);
   };
 
   return (
@@ -71,6 +90,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
+                  autoComplete="email"
                   required
                 />
               </div>

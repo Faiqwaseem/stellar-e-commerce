@@ -5,8 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { HelmetProvider } from "react-helmet-async";
-import { AuthProvider } from "@/hooks/useAuth";
-import { I18nProvider } from "@/lib/i18n";
+import { AuthProvider } from "@/context/AuthContext";
 import { MainLayout } from "@/components/layout";
 
 // Pages
@@ -43,6 +42,7 @@ import Returns from "./pages/Returns";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Careers from "./pages/Careers";
+import AdminRoute from "./routes/admin.route";
 
 const queryClient = new QueryClient();
 
@@ -88,7 +88,8 @@ const App = () => (
               </Route>
 
               {/* Admin Routes */}
-              <Route path="/admin" element={<AdminDashboard />}>
+                <Route element={<AdminRoute />}>
+                <Route path="/admin" element={<AdminDashboard />}>
                 <Route index element={<AdminOverview />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="categories" element={<AdminCategories />} />
@@ -96,6 +97,7 @@ const App = () => (
                 <Route path="customers" element={<AdminCustomers />} />
                 <Route path="coupons" element={<AdminCoupons />} />
                 <Route path="themes" element={<AdminThemes />} />
+                </Route>
               </Route>
 
               {/* Catch-all */}

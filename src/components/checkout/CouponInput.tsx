@@ -3,7 +3,7 @@ import { Tag, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { useCouponStore } from '@/stores/couponStore';
 import { formatPrice } from '@/lib/formatters';
 import { toast } from 'sonner';
