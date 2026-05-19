@@ -1,36 +1,26 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 import {
   loginUser,
   logoutUser,
   registerUser,
+  getCurrentUser,
 } from "@/api/auth.api";
-
-
 
 interface User {
   _id: string;
   username: string;
   email: string;
-  role: string;
+  role: "user" | "admin";
 }
-
-
 
 interface AuthContextType {
   user: User | null;
+  isAdmin: boolean;
 
   loading: boolean;
 
-  login: (data: {
-    email: string;
-    password: string;
-  }) => Promise<void>;
+  login: (data: { email: string; password: string }) => Promise<void>;
 
   register: (data: {
     username: string;
@@ -41,45 +31,52 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-
-
 const AuthContext = createContext<AuthContextType | null>(null);
 
-
-
-export const AuthProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-
-
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await getCurrentUser();
+        if (isMounted) {
+          setUser(response.data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setUser(null);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+    fetchCurrentUser();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
   /*
   |--------------------------------------------------------------------------
   | LOGIN
   |--------------------------------------------------------------------------
   */
 
-  const login = async (values: {
-    email: string;
-    password: string;
-  }) => {
-    setLoading(true);
-
+  const login = async (values: { email: string; password: string }) => {
     try {
       const response = await loginUser(values);
-
+      console.log("Login Response:0", response);
+      console.log("Login Response:", response.data);
       setUser(response.data);
     } finally {
       setLoading(false);
     }
   };
-
-
 
   /*
   |--------------------------------------------------------------------------
@@ -103,8 +100,6 @@ export const AuthProvider = ({
     }
   };
 
-
-
   /*
   |--------------------------------------------------------------------------
   | LOGOUT
@@ -112,18 +107,27 @@ export const AuthProvider = ({
   */
 
   const logout = async () => {
-    await logoutUser();
-
-    setUser(null);
+    setLoading(true);
+    try {
+      await logoutUser();
+      setUser(null);
+    }
+    catch (error) {
+      console.error("Logout Error:", error);
+    }
+    finally {
+      setLoading(false);
+    }
   };
 
-
+  const isAdmin = user?.role === "admin" ? true : false;
 
   return (
     <AuthContext.Provider
       value={{
         user,
         loading,
+        isAdmin,
         login,
         register,
         logout,
@@ -133,8 +137,6 @@ export const AuthProvider = ({
     </AuthContext.Provider>
   );
 };
-
-
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

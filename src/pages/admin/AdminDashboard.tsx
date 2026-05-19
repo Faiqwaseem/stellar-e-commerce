@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Package, ShoppingCart, BarChart3, ArrowLeft, Palette, FolderTree, Users, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
@@ -15,12 +14,13 @@ const navItems = [
 ];
 
 export default function AdminDashboard() {
-  const { user, isAdmin, isLoading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
 
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading...</div>;
+ if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading...</div>
+    );
   }
 
   if (!user || !isAdmin) {
