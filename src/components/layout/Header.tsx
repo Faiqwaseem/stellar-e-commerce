@@ -28,6 +28,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
 import { useAuth } from '@/context/AuthContext';
 import { ThemeToggle } from './ThemeToggle';
+import { LanguageToggle } from './LanguageToggle';
 
 const categories = [
   { name: 'Electronics', href: '/products?category=Electronics' },
@@ -113,6 +114,7 @@ export function Header() {
             {/* Actions */}
             <div className="flex items-center gap-1.5">
               <ThemeToggle />
+              <LanguageToggle />
 
               {/* Wishlist */}
               <Link to="/wishlist">
