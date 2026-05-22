@@ -45,7 +45,7 @@ export function Header() {
   const navigate = useNavigate();
   const { getTotalItems } = useCartStore();
   const { items: wishlistItems } = useWishlistStore();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +56,7 @@ export function Header() {
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    await logout();
     navigate('/');
   };
 
