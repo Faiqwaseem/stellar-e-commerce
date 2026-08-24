@@ -5,7 +5,7 @@ import { MessageCircleQuestion, CheckCircle2, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

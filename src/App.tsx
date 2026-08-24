@@ -43,6 +43,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Careers from "./pages/Careers";
 import AdminRoute from "./routes/admin.route";
+import { I18nProvider } from "./lib/i18n";
 
 const queryClient = new QueryClient();
 
