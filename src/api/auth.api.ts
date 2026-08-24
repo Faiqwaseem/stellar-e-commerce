@@ -1,7 +1,5 @@
 import api from "./axios";
 
-
-
 /*
 |--------------------------------------------------------------------------
 | REGISTER USER
@@ -18,24 +16,17 @@ export const registerUser = async (data: {
   return response.data;
 };
 
-
-
 /*
 |--------------------------------------------------------------------------
 | LOGIN USER
 |--------------------------------------------------------------------------
 */
 
-export const loginUser = async (data: {
-  email: string;
-  password: string;
-}) => {
+export const loginUser = async (data: { email: string; password: string }) => {
   const response = await api.post("/auth/login", data);
 
   return response.data;
 };
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -45,12 +36,9 @@ export const loginUser = async (data: {
 
 export const getCurrentUser = async () => {
   const response = await api.get("/auth/me");
-  console.log("Current User:", response);
 
   return response.data;
 };
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +48,42 @@ export const getCurrentUser = async () => {
 
 export const logoutUser = async () => {
   const response = await api.post("/auth/logout");
+
+  return response.data;
+};
+
+/*
+|--------------------------------------------------------------------------
+| FORGOT PASSWORD
+|--------------------------------------------------------------------------
+*/
+
+export const forgotPassword = async (
+  email: string
+) => {
+  const response = await api.post(
+    "/auth/forgot-password",
+    { email }
+  );
+
+  return response.data;
+};
+
+/*
+|--------------------------------------------------------------------------
+| RESET PASSWORD
+|--------------------------------------------------------------------------
+*/
+
+
+export const resetPassword = async (
+  token: string,
+  password: string
+) => {
+  const response = await api.post(
+    `/auth/reset-password/${token}`,
+    { password }
+  );
 
   return response.data;
 };
