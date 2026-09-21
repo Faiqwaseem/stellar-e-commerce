@@ -1,19 +1,53 @@
 export interface Product {
-  id: string;
+  _id: string;
   name: string;
-  description: string | null;
+  slug: string;
+  description: string;
   price: number;
-  original_price: number | null;
-  category_id: string | null;
+  compareAtPrice?: number | null;
+
+  category: {
+    _id: string;
+    name: string;
+    slug: string;
+  };
+
+  brand?: string;
+  sku: string;
   stock: number;
   images: string[];
-  featured: boolean;
-  best_seller: boolean;
-  rating: number;
-  review_count: number;
-  created_at: string;
-  updated_at: string;
-  category?: Category;
+  isActive: boolean;
+
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProductPayload {
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  compareAtPrice?: number | null;
+  category: string;
+  brand?: string;
+  sku: string;
+  stock: number;
+  images?: string[];
+  isActive?: boolean;
+}
+
+export interface UpdateProductPayload {
+  name?: string;
+  slug?: string;
+  description?: string;
+  price?: number;
+  compareAtPrice?: number | null;
+  category?: string;
+  brand?: string;
+  sku?: string;
+  stock?: number;
+  images?: string[];
+  isActive?: boolean;
 }
 
 export interface Category {
