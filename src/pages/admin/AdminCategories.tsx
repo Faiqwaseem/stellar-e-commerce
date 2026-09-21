@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,53 +11,39 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import {
+    useCategories,
+    useCreateCategory,
+    useUpdateCategory,
+    useDeleteCategory,
+} from "@/features/categories/hooks/useCategories";
+import { Category } from '@/types';
+import { generateSlug } from '@/lib/validation';
 
-interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-  image_url: string | null;
-  created_at: string;
-}
+
 
 interface CategoryForm {
   name: string;
   description: string;
-  image_url: string;
+  image: string;
 }
 
-const empty: CategoryForm = { name: '', description: '', image_url: '' };
+const empty: CategoryForm = { name: '', description: '', image: '' };
 
 export default function AdminCategories() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [counts, setCounts] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
+const {
+    data: categories = [],
+    isLoading,
+    isError,
+    error,
+  } = useCategories();
+  const createCategoryMutation = useCreateCategory();
+const updateCategoryMutation = useUpdateCategory();
+const deleteCategoryMutation = useDeleteCategory();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CategoryForm>(empty);
-  const [saving, setSaving] = useState(false);
-
-  const fetchData = async () => {
-    setLoading(true);
-    const { data: cats } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name', { ascending: true });
-    if (cats) setCategories(cats as Category[]);
-
-    const { data: prods } = await supabase.from('products').select('category_id');
-    if (prods) {
-      const map: Record<string, number> = {};
-      prods.forEach((p: any) => {
-        if (p.category_id) map[p.category_id] = (map[p.category_id] || 0) + 1;
-      });
-      setCounts(map);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchData(); }, []);
 
   const openCreate = () => {
     setEditingId(null);
@@ -66,62 +51,87 @@ export default function AdminCategories() {
     setDialogOpen(true);
   };
 
-  const openEdit = (c: Category) => {
-    setEditingId(c.id);
+  const openEdit = (category: Category) => {
+    setEditingId(category._id);
+
     setForm({
-      name: c.name,
-      description: c.description || '',
-      image_url: c.image_url || '',
+        name: category.name,
+        description: category.description ?? "",
+        image: category.image ?? "",
     });
+
     setDialogOpen(true);
-  };
+};
 
-  const handleSave = async () => {
+const handleSave = async () => {
     if (!form.name.trim()) {
-      toast.error('Name is required');
-      return;
+        toast.error("Name is required");
+        return;
     }
-    setSaving(true);
+
     const payload = {
-      name: form.name.trim(),
-      description: form.description.trim() || null,
-      image_url: form.image_url.trim() || null,
+        name: form.name.trim(),
+        slug: generateSlug(form.name),
+        description: form.description.trim() || undefined,
+        image: form.image.trim() || undefined,
     };
-    let error;
-    if (editingId) {
-      ({ error } = await supabase.from('categories').update(payload).eq('id', editingId));
-    } else {
-      ({ error } = await supabase.from('categories').insert(payload));
-    }
-    if (error) {
-      toast.error('Failed to save category', { description: error.message });
-    } else {
-      toast.success(editingId ? 'Category updated' : 'Category created');
-      setDialogOpen(false);
-      fetchData();
-    }
-    setSaving(false);
-  };
 
-  const handleDelete = async (c: Category) => {
-    const used = counts[c.id] || 0;
-    if (used > 0) {
-      toast.error(`Cannot delete: ${used} product(s) use this category`);
-      return;
-    }
-    if (!confirm(`Delete category "${c.name}"?`)) return;
-    const { error } = await supabase.from('categories').delete().eq('id', c.id);
-    if (error) {
-      toast.error('Failed to delete', { description: error.message });
-    } else {
-      toast.success('Category deleted');
-      fetchData();
-    }
-  };
+    try {
+        if (editingId) {
+            await updateCategoryMutation.mutateAsync({
+                id: editingId,
+                data: payload,
+            });
 
-  const filtered = categories.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+            toast.success("Category updated");
+        } else {
+            await createCategoryMutation.mutateAsync(payload);
+
+            toast.success("Category created");
+        }
+
+        setDialogOpen(false);
+        setForm(empty);
+        setEditingId(null);
+    } catch (error) {
+        toast.error(
+            editingId
+                ? "Failed to update category"
+                : "Failed to create category",
+            {
+                description:
+                    error?.response?.data?.message ||
+                    "Something went wrong",
+            }
+        );
+    }
+};
+
+  const handleDelete = async (category: Category) => {
+    if (!confirm(`Delete category "${category.name}"?`)) {
+        return;
+    }
+
+    try {
+        await deleteCategoryMutation.mutateAsync(category._id);
+
+        toast.success("Category deleted");
+    } catch (error) {
+        toast.error("Failed to delete category", {
+            description:
+                error?.response?.data?.message ||
+                "Something went wrong",
+        });
+    }
+};
+
+const filtered = categories.filter((category: Category) =>
+    category.name.toLowerCase().includes(search.toLowerCase())
+);
+
+const saving =
+    createCategoryMutation.isPending ||
+    updateCategoryMutation.isPending;
 
   return (
     <div className="space-y-4">
@@ -141,7 +151,19 @@ export default function AdminCategories() {
         </Button>
       </div>
 
-      {loading ? (
+      {isError ? (
+    <div className="bg-card rounded-xl border p-8 text-center">
+        <p className="text-destructive font-medium">
+            Failed to load categories
+        </p>
+
+        <p className="text-sm text-muted-foreground mt-1">
+            {error instanceof Error
+                ? error.message
+                : "Something went wrong"}
+        </p>
+    </div>
+) : isLoading  ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="animate-pulse bg-muted rounded h-12" />
@@ -160,11 +182,11 @@ export default function AdminCategories() {
             </TableHeader>
             <TableBody>
               {filtered.map((c) => (
-                <TableRow key={c.id}>
+                <TableRow key={c._id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <img
-                        src={c.image_url || '/placeholder.svg'}
+                        src={c.image || '/placeholder.svg'}
                         alt={c.name}
                         className="w-10 h-10 rounded object-cover bg-muted"
                       />
@@ -174,7 +196,7 @@ export default function AdminCategories() {
                   <TableCell className="hidden md:table-cell text-muted-foreground max-w-[400px] truncate">
                     {c.description || '—'}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{counts[c.id] || 0}</TableCell>
+                  <TableCell className="text-muted-foreground">{c.productCount ?? 0}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
@@ -220,13 +242,13 @@ export default function AdminCategories() {
             <div className="space-y-2">
               <Label>Image URL</Label>
               <Input
-                value={form.image_url}
-                onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                value={form.image}
+                onChange={(e) => setForm({ ...form, image: e.target.value })}
                 placeholder="https://..."
               />
-              {form.image_url && (
+              {form.image && (
                 <img
-                  src={form.image_url}
+                  src={form.image}
                   alt="preview"
                   className="w-20 h-20 rounded object-cover border mt-2"
                   onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
