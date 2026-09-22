@@ -85,3 +85,13 @@ export const reviewSchema = z.object({
 export function formatZodError(err: z.ZodError): string {
   return err.issues.map((e) => e.message).join('. ');
 }
+
+// ===== Slug =====
+export const generateSlug = (value: string): string => {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+};
