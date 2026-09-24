@@ -1,29 +1,23 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  createProduct,
+  deleteProduct,
   getAllProducts,
   getProductById,
-  createProduct,
   updateProduct,
-  deleteProduct,
 } from "@/api/product.api";
 
-import type {
-  CreateProductPayload,
-  UpdateProductPayload,
-} from "@/types";
+import type { CreateProductPayload, UpdateProductPayload } from "@/types";
 
 export const productKeys = {
   all: ["products"] as const,
 
   lists: () => [...productKeys.all, "list"] as const,
 
-  detail: (id: string) =>
-    [...productKeys.all, "detail", id] as const,
+  details: () => [...productKeys.all, "detail"] as const,
+
+  detail: (id: string) => [...productKeys.details(), id] as const,
 };
 
 export const useProducts = () => {
@@ -45,12 +39,17 @@ export const useCreateProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateProductPayload) =>
-      createProduct(data),
+    mutationFn: ({
+      data,
+      images,
+    }: {
+      data: CreateProductPayload;
+      images?: File[];
+    }) => createProduct(data, images),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: productKeys.all,
+        queryKey: productKeys.lists(),
       });
     },
   });
@@ -63,14 +62,16 @@ export const useUpdateProduct = () => {
     mutationFn: ({
       id,
       data,
+      images,
     }: {
       id: string;
       data: UpdateProductPayload;
-    }) => updateProduct(id, data),
+      images?: File[];
+    }) => updateProduct(id, data, images),
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: productKeys.all,
+        queryKey: productKeys.lists(),
       });
 
       queryClient.invalidateQueries({
@@ -88,7 +89,7 @@ export const useDeleteProduct = () => {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: productKeys.all,
+        queryKey: productKeys.lists(),
       });
     },
   });

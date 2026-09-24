@@ -1,12 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Search,
-  Download,
-  Layers,
-} from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Download, Layers } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,7 +60,8 @@ interface ProductForm {
   original_price: string;
   category_id: string;
   stock: string;
-  images: string[];
+  featured: boolean;
+  bestSeller: boolean;
 }
 
 const emptyProduct: ProductForm = {
@@ -77,18 +71,16 @@ const emptyProduct: ProductForm = {
   original_price: "",
   category_id: "",
   stock: "",
-  images: [],
+  featured: false,
+  bestSeller: false,
 };
 
-type BulkMode =
-  | "set_stock"
-  | "add_stock"
-  | "set_price"
-  | "adjust_price_pct";
+type BulkMode = "set_stock" | "add_stock" | "set_price" | "adjust_price_pct";
 
 export default function AdminProducts() {
   const [search, setSearch] = useState("");
-
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<File[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyProduct);
@@ -105,10 +97,8 @@ export default function AdminProducts() {
     isError: productsError,
   } = useProducts();
 
-  const {
-    data: categories = [],
-    isLoading: categoriesLoading,
-  } = useCategories();
+  const { data: categories = [], isLoading: categoriesLoading } =
+    useCategories();
 
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
@@ -124,9 +114,7 @@ export default function AdminProducts() {
    *
    * Therefore we create one common payload builder.
    */
-  const buildPayload = (
-    productForm: ProductForm
-  ): CreateProductPayload => {
+  const buildPayload = (productForm: ProductForm): CreateProductPayload => {
     const price = Number(productForm.price);
     const stock = Number(productForm.stock);
 
@@ -134,15 +122,22 @@ export default function AdminProducts() {
       name: productForm.name.trim(),
       slug: generateSlug(productForm.name),
       description: productForm.description.trim(),
-      sku: productForm.name.trim().toLowerCase().replace(/\s+/g, "-"),
+
+      sku: productForm.name.trim().toUpperCase().replace(/\s+/g, "-"),
+
       price,
+
       compareAtPrice:
         productForm.original_price.trim() !== ""
           ? Number(productForm.original_price)
           : null,
+
       category: productForm.category_id,
       stock,
-      images: productForm.images,
+
+      featured: productForm.featured,
+      bestSeller: productForm.bestSeller,
+
       isActive: true,
     };
   };
@@ -157,24 +152,31 @@ export default function AdminProducts() {
       description: product.description,
       price: String(product.price),
       original_price:
-        product.compareAtPrice != null
-          ? String(product.compareAtPrice)
-          : "",
+        product.compareAtPrice != null ? String(product.compareAtPrice) : "",
       category_id: product.category._id,
       stock: String(product.stock),
-      images: product.images ?? [],
+      featured: product.featured,
+      bestSeller: product.bestSeller,
     };
   };
 
   const openCreate = () => {
     setEditingId(null);
     setForm({ ...emptyProduct });
+
+    setExistingImages([]);
+    setNewImages([]);
+
     setDialogOpen(true);
   };
 
   const openEdit = (product: Product) => {
     setEditingId(product._id);
     setForm(productToForm(product));
+
+    setExistingImages(product.images ?? []);
+    setNewImages([]);
+
     setDialogOpen(true);
   };
 
@@ -218,7 +220,10 @@ export default function AdminProducts() {
 
         toast.success("Product updated");
       } else {
-        await createProductMutation.mutateAsync(payload);
+        await createProductMutation.mutateAsync({
+          data: payload,
+          images: newImages,
+        });
 
         toast.success("Product created");
       }
@@ -228,9 +233,7 @@ export default function AdminProducts() {
       setForm({ ...emptyProduct });
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to save product";
+        error instanceof Error ? error.message : "Failed to save product";
 
       toast.error("Failed to save product", {
         description: message,
@@ -255,9 +258,7 @@ export default function AdminProducts() {
       toast.success("Product deleted");
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to delete product";
+        error instanceof Error ? error.message : "Failed to delete product";
 
       toast.error("Failed to delete", {
         description: message,
@@ -273,7 +274,7 @@ export default function AdminProducts() {
     }
 
     return products.filter((product) =>
-      product.name.toLowerCase().includes(normalizedSearch)
+      product.name.toLowerCase().includes(normalizedSearch),
     );
   }, [products, search]);
 
@@ -335,9 +336,7 @@ export default function AdminProducts() {
       return;
     }
 
-    const targets = products.filter((product) =>
-      selected.has(product._id)
-    );
+    const targets = products.filter((product) => selected.has(product._id));
 
     if (!targets.length) {
       return;
@@ -355,10 +354,7 @@ export default function AdminProducts() {
         }
 
         if (bulkMode === "add_stock") {
-          nextStock = Math.max(
-            0,
-            product.stock + Math.floor(num)
-          );
+          nextStock = Math.max(0, product.stock + Math.floor(num));
         }
 
         if (bulkMode === "set_price") {
@@ -372,9 +368,7 @@ export default function AdminProducts() {
         if (bulkMode === "adjust_price_pct") {
           nextPrice = Math.max(
             0,
-            Number(
-              (product.price * (1 + num / 100)).toFixed(2)
-            )
+            Number((product.price * (1 + num / 100)).toFixed(2)),
           );
         }
 
@@ -393,13 +387,14 @@ export default function AdminProducts() {
         };
 
         await updateProductMutation.mutateAsync({
-          id: product._id,
+          id: editingId,
           data: payload,
+          images: newImages,
         });
       }
 
       toast.success(
-        `Updated ${ids.length} product${ids.length > 1 ? "s" : ""}`
+        `Updated ${ids.length} product${ids.length > 1 ? "s" : ""}`,
       );
 
       setBulkOpen(false);
@@ -407,9 +402,7 @@ export default function AdminProducts() {
       setSelected(new Set());
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Bulk update failed";
+        error instanceof Error ? error.message : "Bulk update failed";
 
       toast.error("Bulk update failed", {
         description: message,
@@ -432,7 +425,7 @@ export default function AdminProducts() {
       !confirm(
         `Delete ${ids.length} product${
           ids.length > 1 ? "s" : ""
-        }? This cannot be undone.`
+        }? This cannot be undone.`,
       )
     ) {
       return;
@@ -446,15 +439,13 @@ export default function AdminProducts() {
       }
 
       toast.success(
-        `Deleted ${ids.length} product${ids.length > 1 ? "s" : ""}`
+        `Deleted ${ids.length} product${ids.length > 1 ? "s" : ""}`,
       );
 
       setSelected(new Set());
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to delete products";
+        error instanceof Error ? error.message : "Failed to delete products";
 
       toast.error("Bulk delete failed", {
         description: message,
@@ -483,9 +474,7 @@ export default function AdminProducts() {
     ]);
 
     downloadCSV(
-      `products-${new Date()
-        .toISOString()
-        .slice(0, 10)}.csv`,
+      `products-${new Date().toISOString().slice(0, 10)}.csv`,
       [
         "ID",
         "Name",
@@ -498,7 +487,7 @@ export default function AdminProducts() {
         "Active",
         "Created",
       ],
-      rows
+      rows,
     );
 
     toast.success(`Exported ${filtered.length} products`);
@@ -507,9 +496,7 @@ export default function AdminProducts() {
   if (productsError) {
     return (
       <div className="rounded-xl border p-6 text-center">
-        <p className="text-destructive">
-          Failed to load products.
-        </p>
+        <p className="text-destructive">Failed to load products.</p>
       </div>
     );
   }
@@ -540,10 +527,7 @@ export default function AdminProducts() {
             Export CSV
           </Button>
 
-          <Button
-            onClick={openCreate}
-            className="gradient-primary border-0"
-          >
+          <Button onClick={openCreate} className="gradient-primary border-0">
             <Plus className="h-4 w-4 mr-2" />
             Add Product
           </Button>
@@ -556,17 +540,11 @@ export default function AdminProducts() {
         <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl border bg-muted/40">
           <Layers className="h-4 w-4 text-primary" />
 
-          <span className="text-sm font-medium">
-            {selected.size} selected
-          </span>
+          <span className="text-sm font-medium">{selected.size} selected</span>
 
           <div className="flex-1" />
 
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setBulkOpen(true)}
-          >
+          <Button size="sm" variant="outline" onClick={() => setBulkOpen(true)}>
             Bulk Edit
           </Button>
 
@@ -596,10 +574,7 @@ export default function AdminProducts() {
       {loading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, index) => (
-            <div
-              key={index}
-              className="animate-pulse bg-muted rounded h-12"
-            />
+            <div key={index} className="animate-pulse bg-muted rounded h-12" />
           ))}
         </div>
       ) : (
@@ -617,19 +592,13 @@ export default function AdminProducts() {
 
                 <TableHead>Product</TableHead>
 
-                <TableHead className="hidden md:table-cell">
-                  Category
-                </TableHead>
+                <TableHead className="hidden md:table-cell">Category</TableHead>
 
                 <TableHead>Price</TableHead>
 
-                <TableHead className="hidden sm:table-cell">
-                  Stock
-                </TableHead>
+                <TableHead className="hidden sm:table-cell">Stock</TableHead>
 
-                <TableHead className="text-right">
-                  Actions
-                </TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -638,17 +607,13 @@ export default function AdminProducts() {
                 <TableRow
                   key={product._id}
                   data-state={
-                    selected.has(product._id)
-                      ? "selected"
-                      : undefined
+                    selected.has(product._id) ? "selected" : undefined
                   }
                 >
                   <TableCell>
                     <Checkbox
                       checked={selected.has(product._id)}
-                      onCheckedChange={() =>
-                        toggleOne(product._id)
-                      }
+                      onCheckedChange={() => toggleOne(product._id)}
                       aria-label={`Select ${product.name}`}
                     />
                   </TableCell>
@@ -656,10 +621,7 @@ export default function AdminProducts() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <img
-                        src={
-                          product.images?.[0] ||
-                          "/placeholder.svg"
-                        }
+                        src={product.images?.[0] || "/placeholder.svg"}
                         alt={product.name}
                         className="w-10 h-10 rounded object-cover"
                       />
@@ -670,10 +632,7 @@ export default function AdminProducts() {
                         </p>
 
                         {!product.isActive && (
-                          <Badge
-                            variant="destructive"
-                            className="text-xs"
-                          >
+                          <Badge variant="destructive" className="text-xs">
                             Inactive
                           </Badge>
                         )}
@@ -691,11 +650,7 @@ export default function AdminProducts() {
 
                   <TableCell className="hidden sm:table-cell">
                     <Badge
-                      variant={
-                        product.stock > 0
-                          ? "secondary"
-                          : "destructive"
-                      }
+                      variant={product.stock > 0 ? "secondary" : "destructive"}
                     >
                       {product.stock}
                     </Badge>
@@ -714,12 +669,8 @@ export default function AdminProducts() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() =>
-                          handleDelete(product._id)
-                        }
-                        disabled={
-                          deleteProductMutation.isPending
-                        }
+                        onClick={() => handleDelete(product._id)}
+                        disabled={deleteProductMutation.isPending}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -745,15 +696,10 @@ export default function AdminProducts() {
 
       {/* Bulk Edit Dialog */}
 
-      <Dialog
-        open={bulkOpen}
-        onOpenChange={setBulkOpen}
-      >
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              Bulk Edit ({selected.size} products)
-            </DialogTitle>
+            <DialogTitle>Bulk Edit ({selected.size} products)</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
@@ -762,26 +708,20 @@ export default function AdminProducts() {
 
               <Select
                 value={bulkMode}
-                onValueChange={(value) =>
-                  setBulkMode(value as BulkMode)
-                }
+                onValueChange={(value) => setBulkMode(value as BulkMode)}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="set_stock">
-                    Set stock to…
-                  </SelectItem>
+                  <SelectItem value="set_stock">Set stock to…</SelectItem>
 
                   <SelectItem value="add_stock">
                     Increase stock by… (use negative to reduce)
                   </SelectItem>
 
-                  <SelectItem value="set_price">
-                    Set price to… (PKR)
-                  </SelectItem>
+                  <SelectItem value="set_price">Set price to… (PKR)</SelectItem>
 
                   <SelectItem value="adjust_price_pct">
                     Adjust price by…% (e.g. -15 for sale)
@@ -802,14 +742,8 @@ export default function AdminProducts() {
               <Input
                 type="number"
                 value={bulkValue}
-                onChange={(event) =>
-                  setBulkValue(event.target.value)
-                }
-                placeholder={
-                  bulkMode === "adjust_price_pct"
-                    ? "e.g. -15"
-                    : "0"
-                }
+                onChange={(event) => setBulkValue(event.target.value)}
+                placeholder={bulkMode === "adjust_price_pct" ? "e.g. -15" : "0"}
               />
 
               <p className="text-xs text-muted-foreground mt-1">
@@ -839,14 +773,10 @@ export default function AdminProducts() {
 
             <Button
               onClick={runBulk}
-              disabled={
-                bulkRunning || bulkValue === ""
-              }
+              disabled={bulkRunning || bulkValue === ""}
               className="gradient-primary border-0"
             >
-              {bulkRunning
-                ? "Applying…"
-                : `Apply to ${selected.size}`}
+              {bulkRunning ? "Applying…" : `Apply to ${selected.size}`}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -854,16 +784,11 @@ export default function AdminProducts() {
 
       {/* Product Form Dialog */}
 
-      <Dialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      >
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingId
-                ? "Edit Product"
-                : "Add Product"}
+              {editingId ? "Edit Product" : "Add Product"}
             </DialogTitle>
           </DialogHeader>
 
@@ -924,8 +849,7 @@ export default function AdminProducts() {
                   onChange={(event) =>
                     setForm({
                       ...form,
-                      original_price:
-                        event.target.value,
+                      original_price: event.target.value,
                     })
                   }
                 />
@@ -951,11 +875,8 @@ export default function AdminProducts() {
 
                   <SelectContent>
                     {categories.map((category) => (
-                      <SelectItem
-                        key={category._id}
-                        value={category._id}
-                      >
-                        {category.name}
+                      <SelectItem key={category._id} value={category._id}>
+                        {category?.name || "—"}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -983,14 +904,37 @@ export default function AdminProducts() {
               <Label>Product Images</Label>
 
               <ProductImageUploader
-                images={form.images}
-                onChange={(images) =>
-                  setForm({
-                    ...form,
-                    images,
-                  })
-                }
+                images={existingImages}
+                files={newImages}
+                onImagesChange={setExistingImages}
+                onFilesChange={setNewImages}
               />
+              <label className="flex items-center gap-1 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.featured}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      featured: e.target.checked,
+                    })
+                  }
+                  className="rounded"
+                />
+                Featured
+                <input
+                  type="checkbox"
+                  checked={form.bestSeller}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      bestSeller: e.target.checked,
+                    })
+                  }
+                  className="rounded"
+                />
+                Best Seller
+              </label>
             </div>
 
             <Button

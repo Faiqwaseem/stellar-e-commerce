@@ -1,23 +1,26 @@
+export interface ProductCategory {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
 export interface Product {
   _id: string;
   name: string;
   slug: string;
   description: string;
   price: number;
-  compareAtPrice?: number | null;
-
-  category: {
-    _id: string;
-    name: string;
-    slug: string;
-  };
-
+  compareAtPrice: number | null;
+  category: ProductCategory;
   brand?: string;
   sku: string;
   stock: number;
   images: string[];
+  featured: boolean;
+  bestSeller: boolean;
+  rating: number;
+  reviewCount: number;
   isActive: boolean;
-
   createdAt: string;
   updatedAt: string;
 }
@@ -33,6 +36,8 @@ export interface CreateProductPayload {
   sku: string;
   stock: number;
   images?: string[];
+  featured?: boolean;
+  bestSeller?: boolean;
   isActive?: boolean;
 }
 
@@ -47,6 +52,8 @@ export interface UpdateProductPayload {
   sku?: string;
   stock?: number;
   images?: string[];
+  featured?: boolean;
+  bestSeller?: boolean;
   isActive?: boolean;
 }
 
