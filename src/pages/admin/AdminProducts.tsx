@@ -216,14 +216,17 @@ export default function AdminProducts() {
         await updateProductMutation.mutateAsync({
           id: editingId,
           data: payload as UpdateProductPayload,
+          images: newImages,
         });
 
         toast.success("Product updated");
       } else {
-        await createProductMutation.mutateAsync({
+       const tested = await createProductMutation.mutateAsync({
           data: payload,
           images: newImages,
-        });
+       });
+        console.log("tested", tested, newImages);
+        
 
         toast.success("Product created");
       }

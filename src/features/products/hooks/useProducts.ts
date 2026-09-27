@@ -45,7 +45,9 @@ export const useCreateProduct = () => {
     }: {
       data: CreateProductPayload;
       images?: File[];
-    }) => createProduct(data, images),
+    }) => {
+      return createProduct(data, images);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({
