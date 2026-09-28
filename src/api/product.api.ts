@@ -67,6 +67,7 @@ export const createProduct = async (
   return response.data.data;
 };
 
+
 export const updateProduct = async (
   id: string,
   data: UpdateProductPayload,
