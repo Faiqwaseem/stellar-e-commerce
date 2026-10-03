@@ -282,11 +282,6 @@ export default function AdminProducts() {
     );
   }, [products, search]);
 
-
-  console.log("PRODUCTS:", products.length);
-console.log("SEARCH:", JSON.stringify(search));
-console.log("FILTERED:", filtered.length);
-console.log("FILTERED PRODUCTS:", filtered);
   // --------------------------------------------------
   // Bulk selection
   // --------------------------------------------------

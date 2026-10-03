@@ -8,25 +8,27 @@ import {
   deleteCategory,
 } from "@/api/category.api";
 
-import type { CreateCategoryPayload, UpdateCategoryPayload } from "@/types";
+import type {
+  Category,
+  CreateCategoryPayload,
+  UpdateCategoryPayload,
+} from "@/types";
 
-/**
- * Query keys
- *
- * Centralized query keys prevent inconsistent cache references
- * across the application.
- */
 export const categoryKeys = {
   all: ["categories"] as const,
 
   lists: () => [...categoryKeys.all, "list"] as const,
 
-  detail: (id: string) => [...categoryKeys.all, "detail", id] as const,
+  detail: (id: string) =>
+    [...categoryKeys.all, "detail", id] as const,
 };
 
-/**
- * Get all categories
- */
+/*
+|--------------------------------------------------------------------------
+| GET ALL CATEGORIES
+|--------------------------------------------------------------------------
+*/
+
 export const useCategories = () => {
   return useQuery({
     queryKey: categoryKeys.lists(),
@@ -34,9 +36,12 @@ export const useCategories = () => {
   });
 };
 
-/**
- * Get category by ID
- */
+/*
+|--------------------------------------------------------------------------
+| GET CATEGORY BY ID
+|--------------------------------------------------------------------------
+*/
+
 export const useCategory = (id: string) => {
   return useQuery({
     queryKey: categoryKeys.detail(id),
@@ -45,57 +50,98 @@ export const useCategory = (id: string) => {
   });
 };
 
-/**
- * Create category
- */
+/*
+|--------------------------------------------------------------------------
+| CREATE CATEGORY
+|--------------------------------------------------------------------------
+*/
+
 export const useCreateCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateCategoryPayload) => createCategory(data),
+    mutationFn: ({
+      data,
+      image,
+    }: {
+      data: CreateCategoryPayload;
+      image?: File;
+    }) => createCategory(data, image),
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: categoryKeys.all,
-      });
+    onSuccess: (createdCategory) => {
+      queryClient.setQueryData<Category[]>(
+        categoryKeys.lists(),
+        (currentCategories = []) => [
+          createdCategory,
+          ...currentCategories,
+        ],
+      );
     },
   });
 };
 
-/**
- * Update category
- */
+/*
+|--------------------------------------------------------------------------
+| UPDATE CATEGORY
+|--------------------------------------------------------------------------
+*/
+
 export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateCategoryPayload }) =>
-      updateCategory(id, data),
+    mutationFn: ({
+      id,
+      data,
+      image,
+    }: {
+      id: string;
+      data: UpdateCategoryPayload;
+      image?: File;
+    }) => updateCategory(id, data, image),
 
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: categoryKeys.all,
-      });
+    onSuccess: (updatedCategory, variables) => {
+      queryClient.setQueryData<Category[]>(
+        categoryKeys.lists(),
+        (currentCategories = []) =>
+          currentCategories.map((category) =>
+            category._id === variables.id
+              ? updatedCategory
+              : category,
+          ),
+      );
 
-      queryClient.invalidateQueries({
-        queryKey: categoryKeys.detail(variables.id),
-      });
+      queryClient.setQueryData(
+        categoryKeys.detail(variables.id),
+        updatedCategory,
+      );
     },
   });
 };
 
-/**
- * Delete category
- */
+/*
+|--------------------------------------------------------------------------
+| DELETE CATEGORY
+|--------------------------------------------------------------------------
+*/
+
 export const useDeleteCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => deleteCategory(id),
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: categoryKeys.all,
+    onSuccess: (_, deletedId) => {
+      queryClient.setQueryData<Category[]>(
+        categoryKeys.lists(),
+        (currentCategories = []) =>
+          currentCategories.filter(
+            (category) => category._id !== deletedId,
+          ),
+      );
+
+      queryClient.removeQueries({
+        queryKey: categoryKeys.detail(deletedId),
       });
     },
   });
