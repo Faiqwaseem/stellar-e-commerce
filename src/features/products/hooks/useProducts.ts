@@ -34,13 +34,8 @@ export const useProducts = () => {
 export const useProduct = (id: string) => {
   return useQuery({
     queryKey: productKeys.detail(id),
-    queryFn: async () => {
-      const products = await getAllProducts();
-
-      console.log("GET /products RESPONSE:", products);
-
-      return products;
-    },
+    queryFn: () => getProductById(id),
+    enabled: Boolean(id),
   });
 };
 
