@@ -96,7 +96,7 @@ export default function ProductDetail() {
     }
 
     fetchProduct();
-  }, [id]);
+  }, [_id]);
 
   const fetchReviews = async (productId: string) => {
     const { data: reviewsData } = await supabase
@@ -151,7 +151,7 @@ export default function ProductDetail() {
 
   const handleToggleWishlist = () => {
     if (isWishlisted) {
-      removeFromWishlist(product.id);
+      removeFromWishlist(product._id);
       toast.success('Removed from wishlist');
     } else {
       addToWishlist(product);

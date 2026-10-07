@@ -70,7 +70,7 @@ export function BestSellers({ products, loading }: BestSellersProps) {
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
           {products.slice(0, 5).map((product, index) => (
-            <ProductCard key={product.id} product={product} index={index} />
+            <ProductCard key={product._id} product={product} index={index} />
           ))}
         </div>
       </div>

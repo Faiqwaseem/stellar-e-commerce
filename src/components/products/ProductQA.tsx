@@ -49,7 +49,7 @@ export function ProductQA({ productId }: { productId: string }) {
     setSubmitting(true);
     const { error } = await supabase.from('product_questions').insert({
       product_id: productId,
-      user_id: user.id,
+      user_id: user._id,
       question: question.trim(),
     });
     setSubmitting(false);
@@ -67,7 +67,7 @@ export function ProductQA({ productId }: { productId: string }) {
     if (!a) return;
     const { error } = await supabase
       .from('product_questions')
-      .update({ answer: a, answered_by: user?.id, answered_at: new Date().toISOString() })
+      .update({ answer: a, answered_by: user?._id, answered_at: new Date().toISOString() })
       .eq('id', id);
     if (error) {
       toast.error(error.message);

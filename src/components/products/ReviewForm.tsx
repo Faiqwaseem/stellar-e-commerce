@@ -40,7 +40,7 @@ export function ReviewForm({ productId, onReviewAdded }: ReviewFormProps) {
     setSubmitting(true);
     const { error } = await supabase.from('reviews').insert({
       product_id: productId,
-      user_id: user.id,
+      user_id: user._id,
       rating: parsed.data.rating,
       comment: parsed.data.comment || null,
     });
