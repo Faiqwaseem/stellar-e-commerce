@@ -133,7 +133,7 @@ export function Header() {
                 <Button variant="ghost" size="icon" className="relative rounded-xl">
                   <ShoppingCart className="h-5 w-5" />
                   {getTotalItems() > 0 && (
-                    <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-[10px] gradient-primary border-0 shadow-glow">
+                    <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-1 text-[10px] gradient-primary border-0 shadow-glow">
                       {getTotalItems()}
                     </Badge>
                   )}
