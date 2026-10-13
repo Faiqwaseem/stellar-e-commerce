@@ -36,7 +36,6 @@ import { SEO } from "@/components/SEO";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
-console.log("_id", id)
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
 

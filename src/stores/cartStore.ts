@@ -20,13 +20,13 @@ export const useCartStore = create<CartStore>()(
       addItem: (product: Product, quantity = 1) => {
         set((state) => {
           const existingItem = state.items.find(
-            (item) => item.product.id === product.id
+            (item) => item.product._id === product._id
           );
 
           if (existingItem) {
             return {
               items: state.items.map((item) =>
-                item.product.id === product.id
+                item.product._id === product._id
                   ? { ...item, quantity: Math.min(item.quantity + quantity, product.stock) }
                   : item
               ),
@@ -41,14 +41,14 @@ export const useCartStore = create<CartStore>()(
 
       removeItem: (productId: string) => {
         set((state) => ({
-          items: state.items.filter((item) => item.product.id !== productId),
+          items: state.items.filter((item) => item.product._id !== productId),
         }));
       },
 
       updateQuantity: (productId: string, quantity: number) => {
         set((state) => ({
           items: state.items.map((item) =>
-            item.product.id === productId
+            item.product._id === productId
               ? { ...item, quantity: Math.max(1, Math.min(quantity, item.product.stock)) }
               : item
           ),

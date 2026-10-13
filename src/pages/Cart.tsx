@@ -67,14 +67,14 @@ export default function Cart() {
           <div className="lg:col-span-2 space-y-4">
             {items.map((item, index) => (
               <motion.div
-                key={item.product.id}
+                key={item.product._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className="flex gap-4 p-4 bg-card rounded-xl border"
               >
                 {/* Product Image */}
-                <Link to={`/product/${item.product.id}`} className="shrink-0">
+                <Link to={`/product/${item.product._id}`} className="shrink-0">
                   <img
                     src={item.product.images[0] || '/placeholder.svg'}
                     alt={item.product.name}
@@ -84,7 +84,7 @@ export default function Cart() {
 
                 {/* Product Info */}
                 <div className="flex-1 min-w-0">
-                  <Link to={`/product/${item.product.id}`}>
+                  <Link to={`/product/${item.product._id}`}>
                     <h3 className="font-medium hover:text-primary transition-colors line-clamp-2">
                       {item.product.name}
                     </h3>
@@ -105,7 +105,7 @@ export default function Cart() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.product._id, item.quantity - 1)}
                       disabled={item.quantity <= 1}
                     >
                       <Minus className="h-3 w-3" />
@@ -115,7 +115,7 @@ export default function Cart() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.product._id, item.quantity + 1)}
                       disabled={item.quantity >= item.product.stock}
                     >
                       <Plus className="h-3 w-3" />
@@ -127,7 +127,7 @@ export default function Cart() {
                     variant="ghost"
                     size="sm"
                     className="text-destructive hover:text-destructive"
-                    onClick={() => removeItem(item.product.id)}
+                    onClick={() => removeItem(item.product._id)}
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
                     Remove
