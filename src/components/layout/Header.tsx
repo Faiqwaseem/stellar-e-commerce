@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   ShoppingCart,
@@ -13,37 +13,39 @@ import {
   Package,
   Settings,
   LayoutDashboard,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useCartStore } from '@/stores/cartStore';
-import { useWishlistStore } from '@/stores/wishlistStore';
-import { useAuth } from '@/context/AuthContext';
-import { ThemeToggle } from './ThemeToggle';
-import { LanguageToggle } from './LanguageToggle';
+} from "@/components/ui/dropdown-menu";
+import { useWishlistStore } from "@/stores/wishlistStore";
+import { useAuth } from "@/context/AuthContext";
+import { ThemeToggle } from "./ThemeToggle";
+import { LanguageToggle } from "./LanguageToggle";
+import { useCart } from "@/features/cart/hooks/useCart";
 
 const categories = [
-  { name: 'Electronics', href: '/products?category=Electronics' },
-  { name: 'Fashion', href: '/products?category=Fashion' },
-  { name: 'Home & Living', href: '/products?category=Home & Living' },
-  { name: 'Beauty', href: '/products?category=Beauty' },
-  { name: 'Sports', href: '/products?category=Sports' },
-  { name: 'Books', href: '/products?category=Books' },
+  { name: "Electronics", href: "/products?category=Electronics" },
+  { name: "Fashion", href: "/products?category=Fashion" },
+  { name: "Home & Living", href: "/products?category=Home & Living" },
+  { name: "Beauty", href: "/products?category=Beauty" },
+  { name: "Sports", href: "/products?category=Sports" },
+  { name: "Books", href: "/products?category=Books" },
 ];
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
-  const { getTotalItems } = useCartStore();
+  const { data: cart } = useCart();
+  const totalCartItems =
+    cart?.items.reduce((total, item) => total + item.quantity, 0) ?? 0;
   const { items: wishlistItems } = useWishlistStore();
   const { user, isAdmin, logout } = useAuth();
 
@@ -51,13 +53,13 @@ export function Header() {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
+      setSearchQuery("");
     }
   };
 
   const handleSignOut = async () => {
     await logout();
-    navigate('/');
+    navigate("/");
   };
 
   return (
@@ -70,7 +72,11 @@ export function Header() {
           className="container flex items-center justify-center gap-2"
         >
           <span className="inline-block animate-bounce">🎉</span>
-          Free Delivery on orders over PKR 5,000 | Use code: <span className="font-bold bg-white/20 px-2 py-0.5 rounded-md">MYSTORE10</span> for 10% off
+          Free Delivery on orders over PKR 5,000 | Use code:{" "}
+          <span className="font-bold bg-white/20 px-2 py-0.5 rounded-md">
+            MYSTORE10
+          </span>{" "}
+          for 10% off
         </motion.p>
       </div>
 
@@ -118,7 +124,11 @@ export function Header() {
 
               {/* Wishlist */}
               <Link to="/wishlist">
-                <Button variant="ghost" size="icon" className="relative rounded-xl">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative rounded-xl"
+                >
                   <Heart className="h-5 w-5" />
                   {wishlistItems.length > 0 && (
                     <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-[10px] gradient-primary border-0 shadow-glow">
@@ -129,12 +139,18 @@ export function Header() {
               </Link>
 
               {/* Cart */}
+
               <Link to="/cart">
-                <Button variant="ghost" size="icon" className="relative rounded-xl">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative rounded-xl"
+                >
                   <ShoppingCart className="h-5 w-5" />
-                  {getTotalItems() > 0 && (
+
+                  {totalCartItems > 0 && (
                     <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-1 text-[10px] gradient-primary border-0 shadow-glow">
-                      {getTotalItems()}
+                      {totalCartItems}
                     </Badge>
                   )}
                 </Button>
@@ -152,7 +168,7 @@ export function Header() {
                     <div className="px-3 py-2">
                       <p className="text-sm font-semibold">{user.email}</p>
                       <p className="text-xs text-muted-foreground">
-                        {isAdmin ? 'Administrator' : 'Customer'}
+                        {isAdmin ? "Administrator" : "Customer"}
                       </p>
                     </div>
                     <DropdownMenuSeparator />
@@ -188,7 +204,11 @@ export function Header() {
                 </DropdownMenu>
               ) : (
                 <Link to="/login">
-                  <Button variant="default" size="sm" className="gradient-primary border-0 rounded-xl shadow-glow font-semibold">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="gradient-primary border-0 rounded-xl shadow-glow font-semibold"
+                  >
                     Sign In
                   </Button>
                 </Link>
@@ -201,7 +221,11 @@ export function Header() {
                 className="md:hidden rounded-xl"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
-                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {isMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </Button>
             </div>
           </div>
@@ -215,7 +239,11 @@ export function Header() {
             <li>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-secondary-foreground hover:bg-secondary-foreground/10 rounded-lg text-xs font-semibold">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-secondary-foreground hover:bg-secondary-foreground/10 rounded-lg text-xs font-semibold"
+                  >
                     <Menu className="h-3.5 w-3.5 mr-1.5" />
                     All Categories
                     <ChevronDown className="h-3.5 w-3.5 ml-1" />
@@ -233,7 +261,11 @@ export function Header() {
             {categories.slice(0, 5).map((category) => (
               <li key={category.name}>
                 <Link to={category.href}>
-                  <Button variant="ghost" size="sm" className="text-secondary-foreground hover:bg-secondary-foreground/10 rounded-lg text-xs font-medium">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-secondary-foreground hover:bg-secondary-foreground/10 rounded-lg text-xs font-medium"
+                  >
                     {category.name}
                   </Button>
                 </Link>
@@ -248,7 +280,7 @@ export function Header() {
         {isMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden bg-background border-b shadow-lg"
           >
@@ -269,7 +301,9 @@ export function Header() {
 
               {/* Mobile Categories */}
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categories</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Categories
+                </p>
                 <div className="grid grid-cols-2 gap-2">
                   {categories.map((category) => (
                     <Link

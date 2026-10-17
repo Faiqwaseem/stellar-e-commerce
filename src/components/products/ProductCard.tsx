@@ -1,11 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  Heart,
-  ShoppingCart,
-  Star,
-  Eye,
-} from "lucide-react";
+import { Heart, ShoppingCart, Star, Eye } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,12 +8,9 @@ import { Badge } from "@/components/ui/badge";
 
 import type { Product } from "@/types";
 
-import {
-  formatPrice,
-  calculateDiscount,
-} from "@/lib/formatters";
+import { formatPrice, calculateDiscount } from "@/lib/formatters";
 
-import { useCartStore } from "@/stores/cartStore";
+import { useAddCartItem } from "@/features/cart/hooks/useCart";
 import { useWishlistStore } from "@/stores/wishlistStore";
 
 import { toast } from "sonner";
@@ -28,11 +20,8 @@ interface ProductCardProps {
   index?: number;
 }
 
-export function ProductCard({
-  product,
-  index = 0,
-}: ProductCardProps) {
-  const { addItem } = useCartStore();
+export function ProductCard({ product, index = 0 }: ProductCardProps) {
+  const addCartMutation = useAddCartItem();
 
   const {
     addItem: addToWishlist,
@@ -47,12 +36,8 @@ export function ProductCard({
    */
 
   const discount =
-    product.compareAtPrice &&
-    product.compareAtPrice > product.price
-      ? calculateDiscount(
-          product.compareAtPrice,
-          product.price,
-        )
+    product.compareAtPrice && product.compareAtPrice > product.price
+      ? calculateDiscount(product.compareAtPrice, product.price)
       : 0;
 
   const isWishlisted = isInWishlist(product._id);
@@ -65,21 +50,35 @@ export function ProductCard({
    * --------------------------------------------------------------------------
    */
 
-  const handleAddToCart = (
+  const handleAddToCart = async (
     event: React.MouseEvent<HTMLButtonElement>,
   ) => {
     event.preventDefault();
     event.stopPropagation();
 
-    if (isOutOfStock) {
+    if (isOutOfStock || addCartMutation.isPending) {
       return;
     }
 
-    addItem(product);
+    try {
+      await addCartMutation.mutateAsync({
+        product: product._id,
+        quantity: 1,
+      });
 
-    toast.success("Added to cart!", {
-      description: product.name,
-    });
+      toast.success("Added to cart!", {
+        description: product.name,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to add product to cart.";
+
+      toast.error("Could not add to cart", {
+        description: message,
+      });
+    }
   };
 
   /*
@@ -88,9 +87,7 @@ export function ProductCard({
    * --------------------------------------------------------------------------
    */
 
-  const handleToggleWishlist = (
-    event: React.MouseEvent<HTMLButtonElement>,
-  ) => {
+  const handleToggleWishlist = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -138,8 +135,7 @@ export function ProductCard({
               loading={index < 5 ? "eager" : "lazy"}
               className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
               onError={(event) => {
-                event.currentTarget.src =
-                  "/placeholder.svg";
+                event.currentTarget.src = "/placeholder.svg";
               }}
             />
 
@@ -157,18 +153,14 @@ export function ProductCard({
                 </Badge>
               )}
 
-              {product.featured &&
-                !product.bestSeller && (
-                  <Badge className="gradient-primary text-primary-foreground border-0 rounded-lg px-2 py-0.5 text-xs font-bold">
-                    Featured
-                  </Badge>
-                )}
+              {product.featured && !product.bestSeller && (
+                <Badge className="gradient-primary text-primary-foreground border-0 rounded-lg px-2 py-0.5 text-xs font-bold">
+                  Featured
+                </Badge>
+              )}
 
               {isOutOfStock && (
-                <Badge
-                  variant="secondary"
-                  className="rounded-lg"
-                >
+                <Badge variant="secondary" className="rounded-lg">
                   Out of Stock
                 </Badge>
               )}
@@ -183,16 +175,12 @@ export function ProductCard({
                 className="h-9 w-9 rounded-full shadow-lg backdrop-blur-sm bg-background/80 hover:bg-background"
                 onClick={handleToggleWishlist}
                 aria-label={
-                  isWishlisted
-                    ? "Remove from wishlist"
-                    : "Add to wishlist"
+                  isWishlisted ? "Remove from wishlist" : "Add to wishlist"
                 }
               >
                 <Heart
                   className={`h-4 w-4 transition-colors ${
-                    isWishlisted
-                      ? "fill-destructive text-destructive"
-                      : ""
+                    isWishlisted ? "fill-destructive text-destructive" : ""
                   }`}
                 />
               </Button>
@@ -218,13 +206,15 @@ export function ProductCard({
                 type="button"
                 className="w-full rounded-none gradient-primary border-0 h-11 font-semibold"
                 onClick={handleAddToCart}
-                disabled={isOutOfStock}
+                disabled={isOutOfStock || addCartMutation.isPending}
               >
                 <ShoppingCart className="h-4 w-4 mr-2" />
 
                 {isOutOfStock
                   ? "Out of Stock"
-                  : "Add to Cart"}
+                  : addCartMutation.isPending
+                    ? "Adding..."
+                    : "Add to Cart"}
               </Button>
             </div>
           </div>
@@ -250,8 +240,7 @@ export function ProductCard({
                   <Star
                     key={starIndex}
                     className={`h-3.5 w-3.5 ${
-                      starIndex <
-                      Math.floor(product.rating)
+                      starIndex < Math.floor(product.rating)
                         ? "fill-accent text-accent"
                         : "text-muted-foreground/20"
                     }`}
@@ -271,37 +260,30 @@ export function ProductCard({
               </span>
 
               {product.compareAtPrice &&
-                product.compareAtPrice >
-                  product.price && (
+                product.compareAtPrice > product.price && (
                   <span className="text-xs text-muted-foreground line-through">
-                    {formatPrice(
-                      product.compareAtPrice,
-                    )}
+                    {formatPrice(product.compareAtPrice)}
                   </span>
                 )}
             </div>
 
             {/* Stock */}
-            {product.stock > 0 &&
-              product.stock <= 10 && (
-                <div className="mt-2 flex items-center gap-1.5">
-                  <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-destructive transition-all"
-                      style={{
-                        width: `${Math.min(
-                          (product.stock / 10) * 100,
-                          100,
-                        )}%`,
-                      }}
-                    />
-                  </div>
-
-                  <span className="text-[11px] text-destructive font-semibold whitespace-nowrap">
-                    {product.stock} left
-                  </span>
+            {product.stock > 0 && product.stock <= 10 && (
+              <div className="mt-2 flex items-center gap-1.5">
+                <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-destructive transition-all"
+                    style={{
+                      width: `${Math.min((product.stock / 10) * 100, 100)}%`,
+                    }}
+                  />
                 </div>
-              )}
+
+                <span className="text-[11px] text-destructive font-semibold whitespace-nowrap">
+                  {product.stock} left
+                </span>
+              </div>
+            )}
           </CardContent>
         </Card>
       </Link>
