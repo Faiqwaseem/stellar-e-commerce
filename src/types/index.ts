@@ -88,6 +88,25 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface CartItemPayload {
+  product: string;
+  quantity: number;
+}
+
+export interface ServerCartItem {
+  product: Product;
+  quantity: number;
+  price: number;
+}
+
+export interface ServerCart {
+  _id?: string;
+  user: string;
+  items: ServerCartItem[];
+  totalAmount: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
 export interface WishlistItem {
   id: string;
   user_id: string;

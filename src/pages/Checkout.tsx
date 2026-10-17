@@ -112,7 +112,7 @@ export default function Checkout() {
         _phone: parsed.data.phone,
         _payment_method: parsed.data.paymentMethod,
         _coupon_code: applied?.code || null,
-      } as any);
+      });
 
       if (error) throw error;
 
@@ -125,7 +125,7 @@ export default function Checkout() {
         toast.success('Order placed successfully!');
         navigate(`/order-success?orderId=${orderId}`);
       }
-    } catch (error: any) {
+    } catch (error) {
       toast.error('Failed to place order', { description: error.message });
     } finally {
       setLoading(false);
