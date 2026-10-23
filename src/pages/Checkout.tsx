@@ -106,13 +106,13 @@ export default function Checkout() {
     setLoading(true);
     try {
       const { data: orderId, error } = await supabase.rpc('place_order', {
-        _items: items.map((i) => ({ product_id: i.product.id, quantity: i.quantity })),
+        _items: items.map((i) => ({ product_id: i.product._id, quantity: i.quantity })),
         _shipping_address: parsed.data.address,
         _shipping_city: parsed.data.city,
         _phone: parsed.data.phone,
         _payment_method: parsed.data.paymentMethod,
         _coupon_code: applied?.code || null,
-      } as any);
+      });
 
       if (error) throw error;
 
@@ -125,7 +125,7 @@ export default function Checkout() {
         toast.success('Order placed successfully!');
         navigate(`/order-success?orderId=${orderId}`);
       }
-    } catch (error: any) {
+    } catch (error) {
       toast.error('Failed to place order', { description: error.message });
     } finally {
       setLoading(false);
@@ -233,7 +233,7 @@ export default function Checkout() {
                 <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
                 <div className="space-y-3 mb-4">
                   {items.map((item) => (
-                    <div key={item.product.id} className="flex gap-3">
+                    <div key={item.product._id} className="flex gap-3">
                       <img src={item.product.images[0] || '/placeholder.svg'} alt={item.product.name} className="w-16 h-16 object-cover rounded-lg" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium line-clamp-1">{item.product.name}</p>

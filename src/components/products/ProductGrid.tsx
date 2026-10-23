@@ -1,20 +1,29 @@
-import { Product } from '@/types';
-import { ProductCard } from './ProductCard';
+import type { Product } from "@/types";
+import { ProductCard } from "./ProductCard";
 
 interface ProductGridProps {
   products: Product[];
   loading?: boolean;
 }
 
-export function ProductGrid({ products, loading }: ProductGridProps) {
+export function ProductGrid({
+  products,
+  loading,
+}: ProductGridProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {[...Array(10)].map((_, i) => (
-          <div key={i} className="animate-pulse">
+        {[...Array(10)].map((_, index) => (
+          <div
+            key={index}
+            className="animate-pulse"
+          >
             <div className="aspect-square bg-muted rounded-lg" />
+
             <div className="mt-2 h-4 bg-muted rounded w-3/4" />
+
             <div className="mt-1 h-3 bg-muted rounded w-1/2" />
+
             <div className="mt-2 h-5 bg-muted rounded w-1/3" />
           </div>
         ))}
@@ -22,10 +31,12 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
     );
   }
 
-  if (products.length === 0) {
+  if (!products.length) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No products found</p>
+        <p className="text-muted-foreground">
+          No products found
+        </p>
       </div>
     );
   }
@@ -33,7 +44,11 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {products.map((product, index) => (
-        <ProductCard key={product.id} product={product} index={index} />
+        <ProductCard
+          key={product._id}
+          product={product}
+          index={index}
+        />
       ))}
     </div>
   );

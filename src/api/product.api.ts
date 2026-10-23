@@ -20,7 +20,7 @@ export const getAllProducts = async (): Promise<Product[]> => {
 
 export const getProductById = async (id: string): Promise<Product> => {
   const response = await api.get<ApiResponse<Product>>(`/products/${id}`);
-
+console.log("check ID ", response)
   return response.data.data;
 };
 
@@ -34,19 +34,17 @@ export const createProduct = async (
   formData.append("slug", data.slug);
   formData.append("description", data.description);
   formData.append("price", String(data.price));
+  formData.append("category", data.category);
+  formData.append("sku", data.sku);
+  formData.append("stock", String(data.stock));
 
-  if (data.compareAtPrice !== undefined && data.compareAtPrice !== null) {
+  if (data.compareAtPrice != null) {
     formData.append("compareAtPrice", String(data.compareAtPrice));
   }
-
-  formData.append("category", data.category);
 
   if (data.brand) {
     formData.append("brand", data.brand);
   }
-
-  formData.append("sku", data.sku);
-  formData.append("stock", String(data.stock));
 
   formData.append("featured", String(data.featured ?? false));
   formData.append("bestSeller", String(data.bestSeller ?? false));

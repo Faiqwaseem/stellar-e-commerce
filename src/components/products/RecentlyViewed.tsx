@@ -10,7 +10,7 @@ interface Props {
 export function RecentlyViewed({ excludeId, title }: Props) {
   const { items } = useRecentlyViewedStore();
   const { t } = useTranslation();
-  const filtered = items.filter((p) => p.id !== excludeId).slice(0, 6);
+  const filtered = items.filter((p) => p._id !== excludeId).slice(0, 6);
 
   if (filtered.length === 0) return null;
 
@@ -21,7 +21,7 @@ export function RecentlyViewed({ excludeId, title }: Props) {
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {filtered.map((p, i) => (
-          <ProductCard key={p.id} product={p} index={i} />
+          <ProductCard key={p._id} product={p} index={i} />
         ))}
       </div>
     </section>

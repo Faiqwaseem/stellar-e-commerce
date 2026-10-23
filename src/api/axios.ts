@@ -5,12 +5,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
-
-  headers: {
-    "Content-Type": "multipart/form-data",
-  },
-
-  timeout: 10000,
+  timeout: 10_000,
 });
 
 
@@ -50,7 +45,7 @@ api.interceptors.response.use(
     */
 
     if (error.response?.status === 401) {
-      console.log("Unauthorized Request");
+      console.error("Unauthorized Request");
     }
 
     /*
@@ -59,8 +54,8 @@ api.interceptors.response.use(
     |--------------------------------------------------------------------------
     */
 
-    if (error.response?.status === 500) {
-      console.log("Internal Server Error");
+    if (error.response?.status >= 500) {
+      console.error("Server error");
     }
 
     /*
@@ -70,7 +65,7 @@ api.interceptors.response.use(
     */
 
     if (!error.response) {
-      console.log("Network Error");
+      console.error("Network error");
     }
 
     return Promise.reject(error);

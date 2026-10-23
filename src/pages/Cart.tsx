@@ -3,21 +3,98 @@ import { motion } from 'framer-motion';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useCartStore } from '@/stores/cartStore';
+import {
+  useCart,
+  useUpdateCartItem,
+  useRemoveCartItem,
+  useClearCart,
+} from '@/features/cart/hooks/useCart';
 import { useCouponStore } from '@/stores/couponStore';
 import { CouponInput } from '@/components/checkout/CouponInput';
 import { formatPrice } from '@/lib/formatters';
 import { SEO } from '@/components/SEO';
 
 export default function Cart() {
-  const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
+  const {
+    data: cart,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useCart();
+
+  const updateCartMutation = useUpdateCartItem();
+  const removeCartMutation = useRemoveCartItem();
+  const clearCartMutation = useClearCart();
+
   const { applied } = useCouponStore();
 
-  const subtotal = getTotalPrice();
+  // MongoDB / server cart is now the source of truth.
+  const items = cart?.items ?? [];
+
+  const subtotal = items.reduce(
+    (total, item) => total + item.product.price * item.quantity,
+    0,
+  );
+
   const baseShipping = subtotal > 5000 ? 0 : 250;
   const shipping = applied?.free_shipping ? 0 : baseShipping;
   const discount = applied?.discount || 0;
   const total = Math.max(subtotal - discount, 0) + shipping;
+
+  const isUpdating = updateCartMutation.isPending;
+  const isRemoving = removeCartMutation.isPending;
+  const isClearing = clearCartMutation.isPending;
+
+  const handleUpdateQuantity = (productId: string, quantity: number) => {
+    if (!Number.isInteger(quantity) || quantity < 1) return;
+
+    updateCartMutation.mutate({
+      product: productId,
+      quantity,
+    });
+  };
+
+  const handleRemoveItem = (productId: string) => {
+    removeCartMutation.mutate(productId);
+  };
+
+  const handleClearCart = () => {
+    clearCartMutation.mutate();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4 animate-pulse" />
+        <p className="text-muted-foreground">Loading your cart...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+        <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+        <h1 className="text-2xl font-bold mb-2">
+          Unable to load your cart
+        </h1>
+        <p className="text-muted-foreground mb-6">
+          {error instanceof Error
+            ? error.message
+            : 'Something went wrong. Please try again.'}
+        </p>
+        <Button
+          className="gradient-primary border-0"
+          onClick={() => void refetch()}
+          disabled={isFetching}
+        >
+          {isFetching ? 'Retrying...' : 'Try Again'}
+        </Button>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -45,7 +122,11 @@ export default function Cart() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO title="Shopping Cart" description="Review items in your MyStore shopping cart. Checkout securely with free delivery on orders over PKR 5,000." />
+      <SEO
+        title="Shopping Cart"
+        description="Review items in your MyStore shopping cart. Checkout securely with free delivery on orders over PKR 5,000."
+      />
+
       {/* Breadcrumb */}
       <div className="bg-muted/50 py-4">
         <div className="container">
@@ -67,14 +148,17 @@ export default function Cart() {
           <div className="lg:col-span-2 space-y-4">
             {items.map((item, index) => (
               <motion.div
-                key={item.product.id}
+                key={item.product._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className="flex gap-4 p-4 bg-card rounded-xl border"
               >
                 {/* Product Image */}
-                <Link to={`/product/${item.product.id}`} className="shrink-0">
+                <Link
+                  to={`/product/${item.product._id}`}
+                  className="shrink-0"
+                >
                   <img
                     src={item.product.images[0] || '/placeholder.svg'}
                     alt={item.product.name}
@@ -84,7 +168,7 @@ export default function Cart() {
 
                 {/* Product Info */}
                 <div className="flex-1 min-w-0">
-                  <Link to={`/product/${item.product.id}`}>
+                  <Link to={`/product/${item.product._id}`}>
                     <h3 className="font-medium hover:text-primary transition-colors line-clamp-2">
                       {item.product.name}
                     </h3>
@@ -95,6 +179,16 @@ export default function Cart() {
                   <p className="text-lg font-bold text-primary mt-2">
                     {formatPrice(item.product.price)}
                   </p>
+                  {item.quantity > item.product.stock && (
+                    <p className="text-sm text-destructive mt-1">
+                      Requested quantity exceeds available stock.
+                    </p>
+                  )}
+                  {item.product.stock < 1 && (
+                    <p className="text-sm text-destructive mt-1">
+                      This product is out of stock.
+                    </p>
+                  )}
                 </div>
 
                 {/* Quantity & Actions */}
@@ -105,18 +199,34 @@ export default function Cart() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
+                      onClick={() =>
+                        handleUpdateQuantity(
+                          item.product._id,
+                          item.quantity - 1,
+                        )
+                      }
+                      disabled={item.quantity <= 1 || isUpdating}
                     >
                       <Minus className="h-3 w-3" />
                     </Button>
-                    <span className="w-8 text-center text-sm">{item.quantity}</span>
+
+                    <span className="w-8 text-center text-sm">
+                      {item.quantity}
+                    </span>
+
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                      disabled={item.quantity >= item.product.stock}
+                      onClick={() =>
+                        handleUpdateQuantity(
+                          item.product._id,
+                          item.quantity + 1,
+                        )
+                      }
+                      disabled={
+                        item.quantity >= item.product.stock || isUpdating
+                      }
                     >
                       <Plus className="h-3 w-3" />
                     </Button>
@@ -127,7 +237,8 @@ export default function Cart() {
                     variant="ghost"
                     size="sm"
                     className="text-destructive hover:text-destructive"
-                    onClick={() => removeItem(item.product.id)}
+                    onClick={() => handleRemoveItem(item.product._id)}
+                    disabled={isRemoving || isClearing}
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
                     Remove
@@ -137,8 +248,12 @@ export default function Cart() {
             ))}
 
             {/* Clear Cart */}
-            <Button variant="outline" onClick={clearCart}>
-              Clear Cart
+            <Button
+              variant="outline"
+              onClick={handleClearCart}
+              disabled={isClearing || isRemoving || isUpdating}
+            >
+              {isClearing ? 'Clearing...' : 'Clear Cart'}
             </Button>
           </div>
 
@@ -152,19 +267,24 @@ export default function Cart() {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
+
                 {discount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Discount</span>
-                    <span className="text-success">−{formatPrice(discount)}</span>
+                    <span className="text-success">
+                      −{formatPrice(discount)}
+                    </span>
                   </div>
                 )}
+
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
                   <span className={shipping === 0 ? 'text-success' : ''}>
                     {shipping === 0 ? 'Free' : formatPrice(shipping)}
                   </span>
                 </div>
-                {shipping > 0 && !applied?.free_shipping && (
+
+                {shipping > 0 && !applied?.free_shipping && subtotal < 5000 && (
                   <p className="text-xs text-muted-foreground">
                     Add {formatPrice(5000 - subtotal)} more for free shipping!
                   </p>
@@ -183,7 +303,20 @@ export default function Cart() {
               </div>
 
               <Link to="/checkout">
-                <Button className="w-full gradient-primary border-0" size="lg">
+                <Button
+                  className="w-full gradient-primary border-0"
+                  size="lg"
+                  disabled={
+                    isUpdating ||
+                    isRemoving ||
+                    isClearing ||
+                    items.some(
+                      (item) =>
+                        item.product.stock < 1 ||
+                        item.quantity > item.product.stock,
+                    )
+                  }
+                >
                   Proceed to Checkout
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

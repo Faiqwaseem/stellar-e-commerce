@@ -1,4 +1,5 @@
 import api from "./axios";
+
 import type {
   Category,
   CreateCategoryPayload,
@@ -10,8 +11,6 @@ interface ApiResponse<T> {
   message: string;
   data: T;
 }
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -33,7 +32,7 @@ export const getAllCategories = async (): Promise<Category[]> => {
 
 export const getCategoryById = async (id: string): Promise<Category> => {
   const response = await api.get<ApiResponse<Category>>(
-    `/categories/${id}`
+    `/categories/${id}`,
   );
 
   return response.data.data;
@@ -46,11 +45,26 @@ export const getCategoryById = async (id: string): Promise<Category> => {
 */
 
 export const createCategory = async (
-  data: CreateCategoryPayload
+  data: CreateCategoryPayload,
+  imageFile?: File,
 ): Promise<Category> => {
+  const formData = new FormData();
+
+
+  formData.append("name", data.name);
+  formData.append("slug", data.slug);
+
+  if (data.description) {
+    formData.append("description", data.description);
+  }
+
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
+
   const response = await api.post<ApiResponse<Category>>(
     "/categories",
-    data
+    formData,
   );
 
   return response.data.data;
@@ -64,13 +78,26 @@ export const createCategory = async (
 
 export const updateCategory = async (
   id: string,
-  data: UpdateCategoryPayload
+  data: UpdateCategoryPayload,
+  imageFile?: File,
 ): Promise<Category> => {
+  const formData = new FormData();
+
+  formData.append("name", data.name);
+  formData.append("slug", data.slug);
+
+  if (data.description) {
+    formData.append("description", data.description);
+  }
+
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
+
   const response = await api.patch<ApiResponse<Category>>(
     `/categories/${id}`,
-    data
+    formData,
   );
-  console.log("udateCategory", response.data.data);
 
   return response.data.data;
 };

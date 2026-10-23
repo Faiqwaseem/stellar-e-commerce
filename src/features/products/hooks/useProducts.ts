@@ -8,7 +8,11 @@ import {
   updateProduct,
 } from "@/api/product.api";
 
-import type { CreateProductPayload, UpdateProductPayload } from "@/types";
+import type {
+  CreateProductPayload,
+  Product,
+  UpdateProductPayload,
+} from "@/types";
 
 export const productKeys = {
   all: ["products"] as const,
@@ -45,13 +49,22 @@ export const useCreateProduct = () => {
     }: {
       data: CreateProductPayload;
       images?: File[];
-    }) => {
-      return createProduct(data, images);
-    },
+    }) => createProduct(data, images),
 
-    onSuccess: () => {
+    onSuccess: (createdProduct) => {
+      
+      queryClient.setQueryData<Product[]>(
+        productKeys.lists(),
+        (currentProducts = []) => [
+          createdProduct,
+          ...currentProducts,
+        ],
+        
+      );
+
       queryClient.invalidateQueries({
         queryKey: productKeys.lists(),
+        refetchType: "none",
       });
     },
   });
@@ -71,13 +84,30 @@ export const useUpdateProduct = () => {
       images?: File[];
     }) => updateProduct(id, data, images),
 
-    onSuccess: (_, variables) => {
+    onSuccess: (updatedProduct, variables) => {
+      queryClient.setQueryData<Product[]>(
+        productKeys.lists(),
+        (currentProducts = []) =>
+          currentProducts.map((product) =>
+            product._id === variables.id
+              ? updatedProduct
+              : product,
+          ),
+      );
+
+      queryClient.setQueryData(
+        productKeys.detail(variables.id),
+        updatedProduct,
+      );
+
       queryClient.invalidateQueries({
         queryKey: productKeys.lists(),
+        refetchType: "none",
       });
 
       queryClient.invalidateQueries({
         queryKey: productKeys.detail(variables.id),
+        refetchType: "none",
       });
     },
   });
@@ -89,9 +119,22 @@ export const useDeleteProduct = () => {
   return useMutation({
     mutationFn: (id: string) => deleteProduct(id),
 
-    onSuccess: () => {
+    onSuccess: (_, deletedId) => {
+      queryClient.setQueryData<Product[]>(
+        productKeys.lists(),
+        (currentProducts = []) =>
+          currentProducts.filter(
+            (product) => product._id !== deletedId,
+          ),
+      );
+
+      queryClient.removeQueries({
+        queryKey: productKeys.detail(deletedId),
+      });
+
       queryClient.invalidateQueries({
         queryKey: productKeys.lists(),
+        refetchType: "none",
       });
     },
   });

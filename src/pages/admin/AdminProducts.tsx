@@ -96,6 +96,7 @@ export default function AdminProducts() {
     isLoading: productsLoading,
     isError: productsError,
   } = useProducts();
+  console.log("ADMIN PRODUCTS:", products);
 
   const { data: categories = [], isLoading: categoriesLoading } =
     useCategories();
@@ -221,12 +222,12 @@ export default function AdminProducts() {
 
         toast.success("Product updated");
       } else {
-       const tested = await createProductMutation.mutateAsync({
+          await createProductMutation.mutateAsync({
           data: payload,
           images: newImages,
        });
-        console.log("tested", tested, newImages);
-        
+       
+        setSearch("");
 
         toast.success("Product created");
       }
@@ -390,9 +391,8 @@ export default function AdminProducts() {
         };
 
         await updateProductMutation.mutateAsync({
-          id: editingId,
+          id: product._id,
           data: payload,
-          images: newImages,
         });
       }
 
